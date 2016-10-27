@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<script src='../../vendor/three.js/build/three.min.js'></script>
+<script src='../../vendor/three.js/examples/js/controls/OrbitControls.js'></script>
+<script src="../../vendor/three.js/examples/js/libs/stats.min.js"></script>
+<script src="../../vendor/three.js/examples/js/libs/ammo.js"></script>
+<script src="../threex-ammoworld.js"></script>
+<script src="../threex-ammocontrols.js"></script>
+
+<script src="../../vendor/threex.sportballs/threex.sportballs.js"></script>
+<script>THREEx.SportBalls.baseURL='../../vendor/threex.sportballs/'</script>
+
+<script src='js/startupThree.js/startupThree.js'></script>
+
+<div id='infoText' style='position: absolute; top: 0px; width: 100%;font-family:arial; font-weight: bolder; padding-top: 5px; color: white;'>
+	Playing with <a href="http://threejs.org" target="_blank">three.js</a>
+	and <a href="https://github.com/kripken/ammo.js/">ammo.js</a> 
+	- source on <a href="https://github.com/jeromeetienne/ammojs-demos/">github</a>
+	<br>
+	Here are some images
+	<a href="#images/Yeah-If-The-Lazy-Mexicans-Could-Quit-Raping-Everybody-ThatD-Be-Great-Funny-Donald-Trump-Meme-Image.jpg" onclick="javascript:location.reload()">trump</a>
+	-
+	<a href="#images/threejs-logo.png" onclick="javascript:location.reload()">Three.js</a>
+	-
+	<a href="#images/WebGL_500px_June16.jpg" onclick="javascript:location.reload()">WebGL</a>
+	<br>
+	<b>Wanna try ?</b> <input type="text" placeholder="Your image's url goes here" style='font-size:100%;' size="30">
+	<br><span style='font-size: 130%'>Click to throw balls and destroy the wall!</span>
+</div><body style='margin: 0px; overflow: hidden; text-align:center;'><script>
+
+startUpTHREEjs(window, {}, function(demo){
+
+////////////////////////////////////////////////////////////////////////////////
+//          setup info image url
+////////////////////////////////////////////////////////////////////////////////
+
+;(function(){
+	var domElement = document.querySelector('#infoText input')
+	domElement.addEventListener('keyup', function(event){
+		if (event.keyCode !== 13) return
+		location.hash = '#'+domElement.value
+		location.reload()
+	})
+})()
+
+////////////////////////////////////////////////////////////////////////////////
+//          Code Separator
+////////////////////////////////////////////////////////////////////////////////
+
+
+camera.position.y = 10;
+camera.position.z = 20;
+camera.lookAt(new THREE.Vector3(0,3,0))
+
+//////////////////////////////////////////////////////////////////////////////////
+//		set 3 point lighting						//
+//////////////////////////////////////////////////////////////////////////////////
+
+;(function(){
+	// add a ambient light
+	var light	= new THREE.AmbientLight( 0x020202 ) 
+	scene.add( light )
+	// add a light in front
+	var light	= new THREE.DirectionalLight('white', 1)
+	light.position.set(0.5, 0.5, 2)
+	scene.add( light ) 
+	// add a light behind 
+	var light	= new THREE.DirectionalLight('white', 0.75)
+	light.position.set(-0.5, -0.5, -2)
+	scene.add( light )		
+})()
+
+
+;(function(){
+	var dirLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+	dirLight.position.set( 15, 15, 15 );
+	dirLight.castShadow = true;
+	dirLight.shadow.bias = 0.005
+	dirLight.shadow.camera.near = 1;
+	dirLight.shadow.camera.far = 50;
+	dirLight.shadow.camera.right = 25;
+	dirLight.shadow.camera.left = - 25;
+	dirLight.shadow.camera.top	= 25;
+	dirLight.shadow.camera.bottom = - 25;
+	dirLight.shadow.mapSize.width = 2048;
+	dirLight.shadow.mapSize.height = 2048;
+	scene.add( dirLight );
+
+	// scene.add( new THREE.CameraHelper( dirLight.shadow.camera ) );	
+})()
+////////////////////////////////////////////////////////////////////////////////
+//          Code Separator
+////////////////////////////////////////////////////////////////////////////////
+
+var ammoWorld = new THREEx.AmmoWorld()
+onRenderFcts.push(function(){
+	ammoWorld.update()
+})
+
+////////////////////////////////////////////////////////////////////////////////
+//          display ground
+////////////////////////////////////////////////////////////////////////////////
+
+;(function(){
+// return
+	var geometry = new THREE.BoxGeometry(40,0.1,40)
+        var material = new THREE.MeshPhongMaterial({
+		map: new THREE.TextureLoader().load("../../textures/grid.png", function onLoad(texture){
+			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+			texture.repeat.set(geometry.parameters.width,geometry.parameters.depth)
+			texture.anisotropy = renderer.getMaxAnisotropy()
+		})
+	});
+        var mesh = new THREE.Mesh(geometry, material)
+	mesh.position.y = -mesh.geometry.parameters.height/2
+	mesh.receiveShadow = true
+        scene.add(mesh)
+	
+
+	var ammoControls = new THREEx.AmmoControls(mesh, {
+		mass: 0
+	})
+	ammoControls.setRestitution(0.9)
+	ammoWorld.add(ammoControls)	
+})()
+
+////////////////////////////////////////////////////////////////////////////////
+//          Pile of crate
+////////////////////////////////////////////////////////////////////////////////
+;(function(){
+// return
+	var geometry = new THREE.BoxGeometry(1,1,1)
+	var material = new THREE.MeshPhongMaterial({
+		// wireframe: true
+	});
+	var model = new THREE.Mesh(geometry, material)
+	// var model = THREEx.Crates.createCrate0()
+	// model.scale.multiplyScalar(0.5)
+	model.castShadow = true
+	model.receiveShadow = true
+
+	var defaultImageUrl = 'images/threejs-logo.png'
+	if( location.hash.substring(1) !== '' ){
+		var url = decodeURIComponent(location.hash.substring(1))
+	}else{
+		var url = defaultImageUrl
+	}
+	var texture = new THREE.TextureLoader().load(url, function(texture){
+		var textureAspect = texture.image.width / texture.image.height
+		var wallHeight = 7
+		var nCubes = new THREE.Vector3(wallHeight*textureAspect,wallHeight,1)
+		buildCratesPile(nCubes)
+	}, undefined, function onError(){
+		alert('Cant load your image')
+		location.hash = '#'+defaultImageUrl
+		location.reload()		
+	})
+	model.material.map = texture
+
+	var size = new THREE.Vector3(geometry.parameters.width*1
+			, geometry.parameters.height*1
+			, geometry.parameters.depth*1)
+	return
+	
+	function buildCratesPile( nCubes){		
+		for(var x = 0; x < nCubes.x; x++){
+			for(var y = 0; y < nCubes.y; y++){
+				for(var z = 0; z < nCubes.z; z++){
+					// var mesh = model.clone()
+					// model.geometry = model.geometry.clone()
+					
+					var geometry = new THREE.BoxGeometry(1,1,1)
+					var mesh = new THREE.Mesh(geometry, material)
+						mesh.castShadow = true
+						mesh.receiveShadow = true
+
+					change_uvs( geometry, 1 / nCubes.x, 1 / nCubes.y, x, y );
+					
+					
+					
+					mesh.position.x = (x-nCubes.x/2+0.5) * mesh.scale.x * size.x
+					mesh.position.y = (y-nCubes.y/2+0.5) * mesh.scale.y * size.y
+					mesh.position.z = (z-nCubes.z/2+0.5) * mesh.scale.z * size.z
+
+					mesh.position.y += nCubes.y/2 * size.y * mesh.scale.y
+				        scene.add(mesh)
+				        
+					var ammoControls = new THREEx.AmmoControls(mesh)
+					ammoWorld.add(ammoControls)	
+				}
+			}
+		}
+		
+		function change_uvs( geometry, unitx, unity, offsetx, offsety ) {
+			var faceVertexUvs = geometry.faceVertexUvs[ 0 ];
+			for ( var i = 0; i < faceVertexUvs.length; i ++ ) {
+				var uvs = faceVertexUvs[ i ];
+				for ( var j = 0; j < uvs.length; j ++ ) {
+					var uv = uvs[ j ];				
+					uv.x = ( uv.x + offsetx ) * unitx;
+					uv.y = ( uv.y + offsety ) * unity;
+				}
+			}
+		}
+		
+	}
+})()
+
+////////////////////////////////////////////////////////////////////////////////
+//          throw a ball in front of the camera 
+////////////////////////////////////////////////////////////////////////////////
+;(function(){
+// return
+	var clickRequest = false;
+	var mouseCoords = new THREE.Vector2();
+	
+	// var geometry = new THREE.SphereGeometry(1, 16, 10)
+	// var material = new THREE.MeshNormalMaterial({
+	// 	wireframe: true
+	// });
+	// var model = new THREE.Mesh(geometry, material)
+	// var model = THREEx.SportBalls.createBasket()
+	var model = THREEx.SportBalls.createSoftball()
+	model.scale.multiplyScalar(2)
+	model.castShadow = true
+	model.receiveShadow = true
+
+	var eventCoord = new THREE.Vector2
+	renderer.domElement.addEventListener( 'mousedown', function( event ) {
+		if ( event.target !== renderer.domElement )	return
+		eventCoord.set(event.clientX, event.clientY)
+	}, false);
+
+	renderer.domElement.addEventListener( 'mouseup', function( event ) {
+		if ( event.target !== renderer.domElement )	return
+		if( Math.abs(eventCoord.x - event.clientX) > 5 )	return
+		if( Math.abs(eventCoord.y - event.clientY) > 5 )	return
+
+		if ( clickRequest === true ) return
+		clickRequest = true;
+		mouseCoords.x =   ( eventCoord.x / window.innerWidth ) * 2 - 1
+		mouseCoords.y = - ( eventCoord.y / window.innerHeight) * 2 + 1
+	}, false );
+	
+	onRenderFcts.push(function(){
+		if ( clickRequest === false ) return
+		clickRequest = false;
+
+		var raycaster = new THREE.Raycaster();
+		raycaster.setFromCamera( mouseCoords, camera );
+
+		// Creates a ball
+		var position = new THREE.Vector3();
+		var quaternion = new THREE.Quaternion();
+
+		position.copy( raycaster.ray.direction );
+		position.add( raycaster.ray.origin );
+		quaternion.set( Math.random(), Math.random(), Math.random(), Math.random() ).normalize();
+		
+		// create mesh
+		var mesh = model.clone()
+		mesh.position.copy(position)
+		mesh.quaternion.copy(quaternion)
+	        scene.add(mesh)
+	        
+		var ammoControls = new THREEx.AmmoControls(mesh)
+		ammoWorld.add(ammoControls)	
+
+		var ballBody = ammoControls.physicsBody
+		// ballBody.setFriction( 10 );
+		ballBody.setRestitution(0.4)
+
+		position.copy( raycaster.ray.direction );
+		position.multiplyScalar( 14*3 );
+		ballBody.setLinearVelocity( new Ammo.btVector3( position.x, position.y, position.z ) );
+	})
+})()
+
+})
+
+</script>
+</body>
