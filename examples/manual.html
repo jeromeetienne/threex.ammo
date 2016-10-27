@@ -292,7 +292,8 @@ return
 		var collisionHappened = false
 
 		ammoControls.addEventListener('colliding', function(event){
-console.log(event.otherAmmoControls.object3d.name, event.btContactPoint.getAppliedImpulse())
+return
+			console.log(event.otherAmmoControls.object3d.name, event.btContactPoint.getAppliedImpulse())
 
 			var appliedImpulse = event.btContactPoint.getAppliedImpulse()
 			if( appliedImpulse > 0.1 && event.otherAmmoControls.object3d.name === 'ground' ){
