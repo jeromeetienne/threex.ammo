@@ -1,0 +1,66 @@
+<!doctype html>
+<script src='../lib/webaudiox.shim.js'></script>
+<script src='../lib/webaudiox.lineout.js'></script>
+<script src='../lib/webaudiox.loadbuffer.js'></script>
+<script src='../lib/webaudiox.analyseraverage.js'></script>
+<script src='../lib/webaudiox.bytetonormalizedfloat32array.js'></script>
+
+<script src='../lib/webaudiox.analyser2volume.js'></script>
+<script src='./helpers/webaudiox.analyser2canvas.js'></script>
+
+<body style='margin: 0; overflow: hidden; background-color: #444444'>
+<script>
+	var context	= new AudioContext()
+
+	// Create lineOut
+	var lineOut	= new WebAudiox.LineOut(context)
+	lineOut.volume	= 0.2
+
+	var analyser	= context.createAnalyser()
+	analyser.connect(lineOut.destination);
+	lineOut.destination	= analyser;
+
+	// load a sound and play it immediatly
+	WebAudiox.loadBuffer(context, 'sounds/Cissy_Strut_Edit.mp3', function(buffer){
+		var source	= context.createBufferSource();
+		source.buffer	= buffer;
+		source.loop	= true
+		source.connect(lineOut.destination);
+		source.start(0);		
+	});
+	
+	// get microphone as source
+	// navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
+	// navigator.getUserMedia( {audio:true}, 	function gotStream(stream) {
+	// 	// Create an AudioNode from the stream.
+	// 	var source	= context.createMediaStreamSource( stream );
+		
+	// 	source.connect(lineOut.destination);
+	// });	
+	
+	
+	
+	//////////////////////////////////////////////////////////////////////////////////
+	//		comment								//
+	//////////////////////////////////////////////////////////////////////////////////
+
+	// create and add the canvas
+	var canvas	= document.createElement('canvas');
+	canvas.width	= window.innerWidth;
+	canvas.height	= window.innerHeight;
+	var ctx		= canvas.getContext("2d");  
+	document.body.appendChild(canvas)
+
+	// create the object
+	var analyser2canvas	= new WebAudiox.Analyser2Canvas(analyser, canvas)
+
+	// loop and update
+	requestAnimationFrame(function update() {
+		requestAnimationFrame(update);
+		// clear the canvas
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		// put the sound in the canvas
+		analyser2canvas.update()
+	})
+
+</script></body>
