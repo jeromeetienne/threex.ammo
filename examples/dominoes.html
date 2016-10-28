@@ -22,7 +22,7 @@
 startUpTHREEjs(window, {}, function(demo){
 
 camera.position.y = 10;
-camera.position.z = 20;
+camera.position.z = 30;
 camera.lookAt(new THREE.Vector3(0,3,0))
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -99,38 +99,49 @@ onRenderFcts.push(function(){
 //		Domino
 //////////////////////////////////////////////////////////////////////////////
 
-;(function(){
-// return
+
+function buildBlaCurvesVertices(){
 	var points = [];
-	var radius = 10
-	points.push( new THREE.Vector3(0,0,0) );
-	points.push( new THREE.Vector3(0,0,-radius) );
-	points.push( new THREE.Vector3(radius,0,-radius) );
-	points.push( new THREE.Vector3(radius,0,0) );
-	points.push( new THREE.Vector3(radius*2,0,0) );
-
-	var geometry = new THREE.Geometry()
-
-	var n_sub = 6;
-	// var spline = new THREE.Spline( points );
-	var spline = new THREE.CatmullRomCurve3( points );
-	// spline.type = 'chordal';
-
-	for ( i = 0; i < points.length * n_sub; i ++ ) {
-		var index = i / ( points.length * n_sub );
-		var position = spline.getPoint( index );
-		geometry.vertices[ i ] = new THREE.Vector3( position.x, position.y, position.z );
+	var halfWidth = 10
+	var halfHeight = 10
+	
+	for( var i = 0; i < 4; i++){
+		points.push( new THREE.Vector3(-halfWidth,0,+halfHeight) );
+		points.push( new THREE.Vector3(-halfWidth,0,-halfHeight) );
+		points.push( new THREE.Vector3(+halfWidth,0,-halfHeight) );
+		points.push( new THREE.Vector3(+halfWidth,0,+halfHeight) );
+		
+		halfWidth *= 0.7
+		halfHeight *= 0.7
 	}
-
-	var material = new THREE.LineBasicMaterial( { color: 0xffffff, opacity: 1, linewidth: 3} );
-
-	var line = new THREE.Line( geometry, material );
-	line.position.x -= 5
-	line.position.y  = 1
-	scene.add(line)
+	return points
+}
 
 
+function buildBlaCurvesVertices(){
+	var angle = Math.PI/2
+	
+	var points = [];
+	var radius = 19
+	
+	for( var i = 0; i < 150; i++){
+		var point = new THREE.Vector3()
+		point.x = Math.cos(angle)*radius
+		point.z = Math.sin(angle)*radius
 
+		points.push( point );
+		
+		radius -= 0.10
+		angle += Math.PI/8
+	}
+	return points
+}
+
+;(function(){
+
+	//////////////////////////////////////////////////////////////////////////////
+	//		build domino model
+	//////////////////////////////////////////////////////////////////////////////
 	var texture = new THREE.TextureLoader().load("images/dominos-free-stock-photo-illustration-of-a-domino-tile-15074-pbN2OI-clipart.png") 
 	var materials = [];
 	for ( var i = 0; i < 6; i ++ ) {
@@ -147,26 +158,77 @@ onRenderFcts.push(function(){
 	model.castShadow = true
 	model.receiveShadow = true
 	
-	var nDominoes = 30
+
+	var points = buildBlaCurvesVertices();
+	var geometry = new THREE.Geometry()
+
+	// var n_sub = 10;
+	var curves = new THREE.CatmullRomCurve3( points );
+	// curves.type = 'chordal';
+
+	//////////////////////////////////////////////////////////////////////////////
+	//		build line
+	//////////////////////////////////////////////////////////////////////////////
+	var geometry = new THREE.Geometry()
+	for ( i = 0; i < points.length; i ++ ) {
+		var index = i / ( points.length );
+		var position = curves.getPoint( index );
+		geometry.vertices[ i ] = new THREE.Vector3( position.x, position.y, position.z );
+	}
+	var material = new THREE.LineBasicMaterial( { color: 0xffffff, opacity: 1, linewidth: 3} );
+
+	var line = new THREE.Line( geometry, material );
+	// line.position.x -= 5
+	line.position.y  = 1
+	scene.add(line)
+
+	//////////////////////////////////////////////////////////////////////////////
+	//		Add Dominoes
+	//////////////////////////////////////////////////////////////////////////////
+	var nDominoes = Math.floor(curves.getLength()/1.2)
+
+	// nDominoes = 1
+	var dominoesControls = []
 	for(var i = 0; i < nDominoes; i++){
 		var index = i/nDominoes
 		var mesh = model.clone()
 		scene.add(mesh)
 
-		var position = spline.getPoint( index );
+		var position = curves.getPoint( index );
 		position.y = mesh.geometry.parameters.height/2
 		position.add(line.position)
 		mesh.position.copy(position)
 		
 		// mesh.rotation.copy(rotation)
-		var tangent = spline.getTangent( index );
+		var tangent = curves.getTangent( index );
 		mesh.lookAt(tangent.clone().add(position))
 		
 		var ammoControls = new THREEx.AmmoControls(mesh)
 		ammoWorld.add(ammoControls)	
+		
+		dominoesControls.push(ammoControls)
 	}
-})()
+window.dominoesControls =  dominoesControls
+	
 
+	
+})()
+	function pushDomino(ammoControls){
+		ammoControls.object3d.updateMatrixWorld(true)
+		var rotationMatrix = new THREE.Matrix4().extractRotation( ammoControls.object3d.matrixWorld )
+		var direction = new THREE.Vector3(0,0,1).applyMatrix4(rotationMatrix)
+		direction.setLength(1)
+		// console.log(direction)
+		
+		var relPos = new Ammo.btVector3(0,0.5,0)
+		var impulse = new Ammo.btVector3(direction.x, direction.y, direction.z)
+		ammoControls.body.applyImpulse(impulse, relPos)
+		// 
+		// ammoControls.body.applyCentralImpulse(impulse)
+		
+		ammoControls.body.activate()
+	}
+window.pushDomino = pushDomino
 ////////////////////////////////////////////////////////////////////////////////
 //          throw a ball in front of the camera 
 ////////////////////////////////////////////////////////////////////////////////

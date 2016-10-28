@@ -30,7 +30,7 @@ THREEx.AmmoWorld.prototype.update = function(){
         }
 
         // compute physics
-        this.physicsWorld.stepSimulation( deltaTime, 10 );
+        this.physicsWorld.stepSimulation( deltaTime, 1 );
 
         // update all ammoControls
         var btTransform = new Ammo.btTransform();
@@ -63,7 +63,7 @@ THREEx.AmmoWorld.prototype.add = function(ammoControls){
 
 THREEx.AmmoWorld.prototype.remove = function(ammoControls){
         console.assert(ammoControls instanceof THREEx.AmmoControls)        
-        ammoWorld.physicsWorld.removeRigidBody( ammoControls.physicsWorld )
+        this.physicsWorld.removeRigidBody( ammoControls.physicsWorld )
         console.assert(false, 'remove it from _ammoControls too!')
 }
 
@@ -81,7 +81,7 @@ THREEx.AmmoWorld.prototype._updateCollisions = function(){
         var _this = this
 
         // loop thru all manifolds
-        var dispatcher = ammoWorld.physicsWorld.getDispatcher()
+        var dispatcher = this.physicsWorld.getDispatcher()
         var nManifolds = dispatcher.getNumManifolds()
         for(var i = 0; i < nManifolds; i++){
                 // get this manifold
