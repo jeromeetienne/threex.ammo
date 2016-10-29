@@ -1,3 +1,5 @@
+"use strict";
+
 var THREEx = THREEx || {}
 
 THREEx.AmmoControls = function(object3d, options){

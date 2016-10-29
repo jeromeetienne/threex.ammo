@@ -1,3 +1,5 @@
+"use strict";
+
 var THREEx = THREEx || {}
 
 THREEx.AmmoWorld = function(){

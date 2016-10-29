@@ -192,17 +192,20 @@ var speedometer = document.getElementById( 'speedometer' );
 	function createWheelMesh(radius, width) {
 		var geometry = new THREE.CylinderGeometry(radius, radius, width, 24, 1);
 		geometry.rotateZ(Math.PI / 2);
-		var mesh = new THREE.Mesh(geometry, materialInteractive);
-                mesh.castShadow = true
+		var wheelMesh = new THREE.Mesh(geometry, materialInteractive);
+                wheelMesh.castShadow = true
 
-		mesh.add(new THREE.Mesh(new THREE.BoxGeometry(width * 1.5, radius * 1.75, radius*.25, 1, 1, 1), materialInteractive));
+                var geometry = new THREE.BoxGeometry(width * 1.5, radius * 1.75, radius*.25, 1, 1, 1)
+                var boxMesh  = new THREE.Mesh(geometry, materialInteractive);
+		wheelMesh.add(boxMesh);
 
-		scene.add(mesh);
-		return mesh;
+		scene.add(wheelMesh)
+
+		return wheelMesh
 	}
 
-	function createChassisMesh(w, l, h) {
-		var shape = new THREE.BoxGeometry(w, l, h, 1, 1, 1);
+	function createChassisMesh(width, height, depth) {
+		var shape = new THREE.BoxGeometry(width, height, depth, 1, 1, 1);
 		var mesh = new THREE.Mesh(shape, materialInteractive);
                 mesh.castShadow = true
 		scene.add(mesh);
@@ -218,13 +221,13 @@ var speedometer = document.getElementById( 'speedometer' );
 		var chassisLength = 4;
 		var massVehicle = 800;
 
-		var wheelAxisPositionBack = -1;
-		var wheelRadiusBack = .4;
-		var wheelWidthBack = .3;
+		var wheelAxisPositionBack = -1.4;
 		var wheelHalfTrackBack = 1;
 		var wheelAxisHeightBack = .3;
+		var wheelRadiusBack = .6;
+		var wheelWidthBack = .3;
 
-		var wheelAxisFrontPosition = 1.7;
+		var wheelAxisPositionFront = 1.4;
 		var wheelHalfTrackFront = 1;
 		var wheelAxisHeightFront = .3;
 		var wheelRadiusFront = .35;
@@ -296,13 +299,13 @@ var speedometer = document.getElementById( 'speedometer' );
 			wheelMeshes[index] = createWheelMesh(radius, width);
 		}
 
-		addWheel(true, new Ammo.btVector3(wheelHalfTrackFront, wheelAxisHeightFront, wheelAxisFrontPosition), wheelRadiusFront, wheelWidthFront, FRONT_LEFT);
-		addWheel(true, new Ammo.btVector3(-wheelHalfTrackFront, wheelAxisHeightFront, wheelAxisFrontPosition), wheelRadiusFront, wheelWidthFront, FRONT_RIGHT);
+		addWheel(true, new Ammo.btVector3(wheelHalfTrackFront, wheelAxisHeightFront, wheelAxisPositionFront), wheelRadiusFront, wheelWidthFront, FRONT_LEFT);
+		addWheel(true, new Ammo.btVector3(-wheelHalfTrackFront, wheelAxisHeightFront, wheelAxisPositionFront), wheelRadiusFront, wheelWidthFront, FRONT_RIGHT);
 		addWheel(false, new Ammo.btVector3(-wheelHalfTrackBack, wheelAxisHeightBack, wheelAxisPositionBack), wheelRadiusBack, wheelWidthBack, BACK_LEFT);
 		addWheel(false, new Ammo.btVector3(wheelHalfTrackBack, wheelAxisHeightBack, wheelAxisPositionBack), wheelRadiusBack, wheelWidthBack, BACK_RIGHT);
 
 		// Sync keybord actions and physics and graphics
-		function sync(dt) {
+		function update(dt) {
 
 			var speed = vehicle.getCurrentSpeedKmHour();
 
@@ -354,25 +357,24 @@ var speedometer = document.getElementById( 'speedometer' );
 			vehicle.setSteeringValue(vehicleSteering, FRONT_LEFT);
 			vehicle.setSteeringValue(vehicleSteering, FRONT_RIGHT);
 
-			var tm, p, q, i;
-			var n = vehicle.getNumWheels();
-			for (i = 0; i < n; i++) {
+			var nWheels = vehicle.getNumWheels();
+			for (var i = 0; i < nWheels; i++) {
 				vehicle.updateWheelTransform(i, true);
-				tm = vehicle.getWheelTransformWS(i);
-				p = tm.getOrigin();
-				q = tm.getRotation();
-				wheelMeshes[i].position.set(p.x(), p.y(), p.z());
+				var tm = vehicle.getWheelTransformWS(i);
+				var position = tm.getOrigin();
+				var q = tm.getRotation();
+				wheelMeshes[i].position.set(position.x(), position.y(), position.z());
 				wheelMeshes[i].quaternion.set(q.x(), q.y(), q.z(), q.w());
 			}
 
-			tm = vehicle.getChassisWorldTransform();
-			p = tm.getOrigin();
-			q = tm.getRotation();
+			var tm = vehicle.getChassisWorldTransform();
+			var p = tm.getOrigin();
+			var q = tm.getRotation();
 			chassisMesh.position.set(p.x(), p.y(), p.z());
 			chassisMesh.quaternion.set(q.x(), q.y(), q.z(), q.w());
 		}
 
-		onRenderFcts.push(sync);
+		onRenderFcts.push(update);
 	}
         
         //////////////////////////////////////////////////////////////////////////////
