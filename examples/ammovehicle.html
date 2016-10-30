@@ -1,26 +1,26 @@
 <!DOCTYPE html>
-<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<meta name='viewport' content='width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0'>
 <script src='vendor/three.js/build/three.min.js'></script>
 <script src='vendor/three.js/examples/js/controls/OrbitControls.js'></script>
-<script src="vendor/three.js/examples/js/libs/stats.min.js"></script>
-<script src="vendor/three.js/examples/js/libs/ammo.js"></script>
-<script src="../threex-ammoworld.js"></script>
-<script src="../threex-ammocontrols.js"></script>
-<script src="../threex-ammovehicle.js"></script>
+<script src='vendor/three.js/examples/js/libs/stats.min.js'></script>
+<script src='vendor/three.js/examples/js/libs/ammo.js'></script>
+<script src='../threex-ammoworld.js'></script>
+<script src='../threex-ammocontrols.js'></script>
+<script src='../threex-ammovehicle.js'></script>
 
 <script src='js/startupthree.js/startupThree.js'></script>
 <body style='margin: 0px; overflow: hidden; text-align:center;'>
 
-        <style>
-			#speedometer {
-				color: #ffffff;
-				background-color: #990000;
-				position: absolute;
-				bottom: 0px;
-				padding: 5px;
-			}
-        </style>
-	<div id="speedometer">0.0 km/h</div>
+<style>
+	#speedometer {
+		color: #ffffff;
+		background-color: #990000;
+		position: absolute;
+		bottom: 0px;
+		padding: 5px;
+	}
+</style>
+<div id='speedometer'>0.0 km/h</div>
 
 
 
@@ -30,7 +30,8 @@ startUpTHREEjs(window, {
 		// stats : false,
 		// cameraControls : false
 	}, function(demo){
-	
+
+        controls.enableKeys = false
 
 //////////////////////////////////////////////////////////////////////////////////
 //		set 3 point lighting						//
@@ -80,6 +81,55 @@ startUpTHREEjs(window, {
         	ammoWorld.update()
         })
 
+        //////////////////////////////////////////////////////////////////////////////
+        //                add vehicule
+        //////////////////////////////////////////////////////////////////////////////
+
+        // vehicule
+	var ammoVehicle = new THREEx.AmmoVehicle(ammoWorld, new THREE.Vector3(0, 4, -20), new THREE.Quaternion(0, 0, 0, 1));
+        scene.add(ammoVehicle.object3d)
+
+        //////////////////////////////////////////////////////////////////////////////
+        //                update speedometer
+        //////////////////////////////////////////////////////////////////////////////
+
+        var speedometer = document.getElementById( 'speedometer' );
+        onRenderFcts.push(function(){
+		var speed = ammoVehicle.vehicle.getCurrentSpeedKmHour();
+
+		speedometer.innerHTML = (speed < 0 ? '(R) ' : '') + Math.abs(speed).toFixed(1) + ' km/h';                
+        })
+
+        //////////////////////////////////////////////////////////////////////////////
+        //                handle keyboard
+        //////////////////////////////////////////////////////////////////////////////
+	var keysActions = {
+		'w':'acceleration',
+		'ArrowUp':'acceleration',
+		'i':'acceleration',
+		's':'braking',
+		'ArrowDown':'braking',
+		'k':'braking',
+		'a':'left',
+		'ArrowLeft':'left',
+		'j':'left',
+		'd':'right',
+		'ArrowRight':'right',
+		'l':'right',
+	};
+                        
+	window.addEventListener( 'keydown', function keydown(event) {
+		if(keysActions[event.key] === undefined ) return
+		ammoVehicle.actions[keysActions[event.key]] = true;
+		event.preventDefault();
+		event.stopPropagation();
+	});
+	window.addEventListener( 'keyup', function keyup(event) {
+		if(keysActions[event.key] === undefined ) return
+		ammoVehicle.actions[keysActions[event.key]] = false;
+		event.preventDefault();
+		event.stopPropagation();
+	});
 
         //////////////////////////////////////////////////////////////////////////////
         //                Code Separator
@@ -175,45 +225,7 @@ startUpTHREEjs(window, {
 			createBox(new THREE.Vector3(size * j - (size * (nw - 1)) / 2, size * i, 10), ZERO_QUATERNION, size, size, size, 10);
                 }
         }
-
-        // vehicule
-	var ammoVehicle = new THREEx.AmmoVehicle(ammoWorld, new THREE.Vector3(0, 4, -20), ZERO_QUATERNION);
-        scene.add(ammoVehicle.object3d)
-        //////////////////////////////////////////////////////////////////////////////
-        //                update speedometer
-        //////////////////////////////////////////////////////////////////////////////
-
-        var speedometer = document.getElementById( 'speedometer' );
-        onRenderFcts.push(function(){
-		var speed = ammoVehicle.vehicle.getCurrentSpeedKmHour();
-
-		speedometer.innerHTML = (speed < 0 ? '(R) ' : '') + Math.abs(speed).toFixed(1) + ' km/h';                
-        })
         
-        //////////////////////////////////////////////////////////////////////////////
-        //                handle keyboard
-        //////////////////////////////////////////////////////////////////////////////
-	var keysActions = {
-		"KeyW":'acceleration',
-		"KeyS":'braking',
-		"KeyA":'left',
-		"KeyD":'right'
-	};
-                        
-	window.addEventListener( 'keydown', function keydown(e) {
-		if(keysActions[e.code] === undefined ) return
-		ammoVehicle.actions[keysActions[e.code]] = true;
-		e.preventDefault();
-		e.stopPropagation();
-		return false;
-	});
-	window.addEventListener( 'keyup', function keyup(e) {
-		if(keysActions[e.code] === undefined ) return
-		ammoVehicle.actions[keysActions[e.code]] = false;
-		e.preventDefault();
-		e.stopPropagation();
-		return false;
-	});
 })
 
 </script></body>

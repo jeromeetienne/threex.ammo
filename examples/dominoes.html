@@ -17,6 +17,12 @@
 	and <a href="https://github.com/kripken/ammo.js/">ammo.js</a> 
 	- More ammo.js <a href="index.html">examples</a>
 	<br> Click to throw balls!
+	<br>
+	Here are some shape
+	<a href="#bli" onclick="javascript:location.reload()">bli</a>
+	-
+	<a href="#bla" onclick="javascript:location.reload()">bla</a>	
+	<br> <a href="javascript:void(0)" id="buttonPush">Push first domino</a>
 </div><body style='margin: 0px; overflow: hidden; text-align:center;'><script>
 
 startUpTHREEjs(window, {}, function(demo){
@@ -99,56 +105,62 @@ onRenderFcts.push(function(){
 //		Domino
 //////////////////////////////////////////////////////////////////////////////
 
-
-function buildBlaCurvesVertices(){
-	var points = [];
-	var halfWidth = 10
-	var halfHeight = 10
-	
-	for( var i = 0; i < 4; i++){
-		points.push( new THREE.Vector3(-halfWidth,0,+halfHeight) );
-		points.push( new THREE.Vector3(-halfWidth,0,-halfHeight) );
-		points.push( new THREE.Vector3(+halfWidth,0,-halfHeight) );
-		points.push( new THREE.Vector3(+halfWidth,0,+halfHeight) );
-		
-		halfWidth *= 0.7
-		halfHeight *= 0.7
-	}
-	return points
-}
-
-
-function buildBlaCurvesVertices(){
-	var angle = Math.PI/2
-	
-	var points = [];
-	var radius = 19
-	
-	for( var i = 0; i < 150; i++){
-		var point = new THREE.Vector3()
-		point.x = Math.cos(angle)*radius
-		point.z = Math.sin(angle)*radius
-
-		points.push( point );
-		
-		radius -= 0.10
-		angle += Math.PI/8
-	}
-	return points
-}
-
 ;(function(){
+	function buildCurvesVerticesBla(){
+		var points = [];
+		var halfWidth = 10
+		var halfHeight = 10
+		
+		for( var i = 0; i < 4; i++){
+			points.push( new THREE.Vector3(-halfWidth,0,+halfHeight) );
+			points.push( new THREE.Vector3(-halfWidth,0,-halfHeight) );
+			points.push( new THREE.Vector3(+halfWidth,0,-halfHeight) );
+			points.push( new THREE.Vector3(+halfWidth,0,+halfHeight) );
+			
+			halfWidth *= 0.7
+			halfHeight *= 0.7
+		}
+		return points
+	}
+
+	
+	function buildCurvesVerticesBli(){
+		var angle = Math.PI/2
+		
+		var points = [];
+		var radius = 19
+		
+		for( var i = 0; i < 150; i++){
+			var point = new THREE.Vector3()
+			point.x = Math.cos(angle)*radius
+			point.z = Math.sin(angle)*radius
+	
+			points.push( point );
+			
+			radius -= 0.10
+			angle += Math.PI/8
+		}
+		return points
+	}
+	
+	var curveName = location.hash.substring(1) || 'bli'
+	if( curveName === 'bli' )	var builCurveFunction = buildCurvesVerticesBli
+	else if( curveName === 'bla' )	var builCurveFunction = buildCurvesVerticesBla
+	else console.assert(false, 'unknown curve ' + curveName)
+
 
 	//////////////////////////////////////////////////////////////////////////////
 	//		build domino model
 	//////////////////////////////////////////////////////////////////////////////
 	var texture = new THREE.TextureLoader().load("images/dominos-free-stock-photo-illustration-of-a-domino-tile-15074-pbN2OI-clipart.png") 
+	var materialSide = new THREE.MeshPhongMaterial()
+	var materialTexture = new THREE.MeshPhongMaterial({ map: texture } )
 	var materials = [];
 	for ( var i = 0; i < 6; i ++ ) {
 		if( i == 0 || i == 1 || i == 2 || i == 3 ){
-			materials.push( new THREE.MeshPhongMaterial() );
+			materials.push( materialSide );
 		}else{
-			materials.push( new THREE.MeshPhongMaterial({ map: texture } ) );
+			materials.push( materialTexture );
 		}
 	}
 	var geometry = new THREE.BoxGeometry(0.5,1,0.25)
@@ -159,12 +171,8 @@ function buildBlaCurvesVertices(){
 	model.receiveShadow = true
 	
 
-	var points = buildBlaCurvesVertices();
-	var geometry = new THREE.Geometry()
-
-	// var n_sub = 10;
+	var points = builCurveFunction();
 	var curves = new THREE.CatmullRomCurve3( points );
-	// curves.type = 'chordal';
 
 	//////////////////////////////////////////////////////////////////////////////
 	//		build line
@@ -208,11 +216,14 @@ function buildBlaCurvesVertices(){
 		
 		dominoesControls.push(ammoControls)
 	}
-window.dominoesControls =  dominoesControls
-	
 
-	
-})()
+	//////////////////////////////////////////////////////////////////////////////
+	//		push domino
+	//////////////////////////////////////////////////////////////////////////////
+	document.querySelector('#buttonPush').addEventListener('click', function(event){
+		pushDomino(dominoesControls[0])
+	})
+
 	function pushDomino(ammoControls){
 		ammoControls.object3d.updateMatrixWorld(true)
 		var rotationMatrix = new THREE.Matrix4().extractRotation( ammoControls.object3d.matrixWorld )
@@ -228,7 +239,8 @@ window.dominoesControls =  dominoesControls
 		
 		ammoControls.body.activate()
 	}
-window.pushDomino = pushDomino
+	
+})()
 ////////////////////////////////////////////////////////////////////////////////
 //          throw a ball in front of the camera 
 ////////////////////////////////////////////////////////////////////////////////
