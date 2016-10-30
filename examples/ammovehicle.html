@@ -2,6 +2,7 @@
 <meta name='viewport' content='width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0'>
 <script src='vendor/three.js/build/three.min.js'></script>
 <script src='vendor/three.js/examples/js/controls/OrbitControls.js'></script>
+<script src="vendor/three.js/examples/js/loaders/BinaryLoader.js"></script>
 <script src='vendor/three.js/examples/js/libs/stats.min.js'></script>
 <script src='vendor/three.js/examples/js/libs/ammo.js'></script>
 <script src='../threex-ammoworld.js'></script>
@@ -11,6 +12,8 @@
 <script src='js/startupthree.js/startupThree.js'></script>
 <body style='margin: 0px; overflow: hidden; text-align:center;'>
 
+
+<script src='vendor/threex.poolball/threex.poolball.js'></script>
 <style>
 	#speedometer {
 		color: #ffffff;
@@ -52,7 +55,7 @@ startUpTHREEjs(window, {
 	var dirLight = new THREE.DirectionalLight( 0xffffff, 0.8 );
 	dirLight.position.set( -15, 15, 15 );
 	dirLight.castShadow = true;
-	dirLight.shadow.bias = 0.001
+	dirLight.shadow.bias = -0.003
 	dirLight.shadow.camera.near = 1;
 	dirLight.shadow.camera.far = 50;
 	dirLight.shadow.camera.right = 25;
@@ -62,6 +65,7 @@ startUpTHREEjs(window, {
 	dirLight.shadow.mapSize.x = 1024;
 	dirLight.shadow.mapSize.y = 1024;
 	scene.add( dirLight );
+window.dirLight = dirLight
 	// scene.add( new THREE.CameraHelper( dirLight.shadow.camera ) );	
 })()
         //////////////////////////////////////////////////////////////////////////////
@@ -130,82 +134,6 @@ startUpTHREEjs(window, {
 		event.preventDefault();
 		event.stopPropagation();
 	});
-        //////////////////////////////////////////////////////////////////////////////
-        //                Code Separator
-        //////////////////////////////////////////////////////////////////////////////
-
-        //////////////////////////////////////////////////////////////////////////////
-        //                Code Separator
-        //////////////////////////////////////////////////////////////////////////////
-
-	// // - Global variables -
-	var DISABLE_DEACTIVATION = 4;
-	var TRANSFORM_AUX = new Ammo.btTransform();
-	var ZERO_QUATERNION = new THREE.Quaternion(0, 0, 0, 1);
-        
-	// Graphics variables
-	var materialDynamic = new THREE.MeshPhongMaterial({
-                color: 'lightblue'
-        })
-        var materialStatic = new THREE.MeshPhongMaterial({
-                color: 'lightgreen'
-        })
-
-
-        //////////////////////////////////////////////////////////////////////////////
-        //                Code Separator
-        //////////////////////////////////////////////////////////////////////////////
-
-	function createBox(pos, quat, w, l, h, mass, friction) {
-		var material = mass > 0 ? materialDynamic : materialStatic;
-		var shape = new THREE.BoxGeometry(w, l, h, 1, 1, 1);
-		var geometry = new Ammo.btBoxShape(new Ammo.btVector3(w * 0.5, l * 0.5, h * 0.5));
-
-		if(!mass) mass = 0;
-		if(!friction) friction = 1;
-
-		var mesh = new THREE.Mesh(shape, material);
-                mesh.castShadow = true
-                mesh.receiveShadow = true
-		mesh.position.copy(pos);
-		mesh.quaternion.copy(quat);
-		scene.add( mesh );
-
-		var transform = new Ammo.btTransform();
-		transform.setIdentity();
-		transform.setOrigin(new Ammo.btVector3(pos.x, pos.y, pos.z));
-		transform.setRotation(new Ammo.btQuaternion(quat.x, quat.y, quat.z, quat.w));
-		var motionState = new Ammo.btDefaultMotionState(transform);
-
-		var localInertia = new Ammo.btVector3(0, 0, 0);
-		geometry.calculateLocalInertia(mass, localInertia);
-
-		var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, geometry, localInertia);
-		var body = new Ammo.btRigidBody(rbInfo);
-
-		body.setFriction(friction);
-		//body.setRestitution(.9);
-		//body.setDamping(0.2, 0.2);
-
-		ammoWorld.physicsWorld.addRigidBody( body );
-
-		if (mass > 0) {
-			body.setActivationState(DISABLE_DEACTIVATION);
-			// Sync physics and graphics
-			function sync(dt) {
-				var ms = body.getMotionState();
-				if (ms) {
-					ms.getWorldTransform(TRANSFORM_AUX);
-					var p = TRANSFORM_AUX.getOrigin();
-					var q = TRANSFORM_AUX.getRotation();
-					mesh.position.set(p.x(), p.y(), p.z());
-					mesh.quaternion.set(q.x(), q.y(), q.z(), q.w());
-				}
-			}
-
-			onRenderFcts.push(sync);
-		}
-	}
 
 ////////////////////////////////////////////////////////////////////////////////
 //          display ground
@@ -236,7 +164,7 @@ startUpTHREEjs(window, {
 })()
 
 ////////////////////////////////////////////////////////////////////////////////
-//          display ground
+//          display tremplin
 ////////////////////////////////////////////////////////////////////////////////
 
 ;(function(){
@@ -267,6 +195,23 @@ startUpTHREEjs(window, {
 	ammoWorld.add(ammoControls)	
 })()
 
+//////////////////////////////////////////////////////////////////////////////
+//                Code Separator
+//////////////////////////////////////////////////////////////////////////////
+;(function(){
+        var mesh = THREEx.createPoolBall()
+        mesh.scale.multiplyScalar(2)
+        mesh.position.x = -6
+        mesh.position.y = 4
+	mesh.castShadow = true
+	mesh.receiveShadow = true
+        scene.add(mesh)
+        
+	var ammoControls = new THREEx.AmmoControls(mesh)
+	// ammoControls.setFriction(0.9)
+	// ammoControls.setRestitution(0.9)
+	ammoWorld.add(ammoControls)	
+})()
 
 ////////////////////////////////////////////////////////////////////////////////
 //          Pile of crate
@@ -307,7 +252,187 @@ startUpTHREEjs(window, {
 	}
 })()
 
+//////////////////////////////////////////////////////////////////////////////
+//                Code Separator
+//////////////////////////////////////////////////////////////////////////////
         
-})
+;(function(){
+// return
+        // Vehicle
+        var wheelLoader = new THREE.BinaryLoader();
+        wheelLoader.load("./obj/veyron/parts/veyron_wheel_bin.js", function(wheelGeometry){
+        	
+        	var bodyLoader = new THREE.BinaryLoader();
+        	bodyLoader.load("./obj/veyron/parts/veyron_body_bin.js", function(bodyGeometry){
 
+                        var s = 0.02
+        		bodyGeometry.computeBoundingBox();
+        		var bodybb = bodyGeometry.boundingBox;
+        		var textureCube = new THREE.CubeTextureLoader()
+        			.setPath( 'textures/cube/Bridge2/')
+        			.load( [ 'posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg' ] );
+
+        		var bodyMesh = new THREE.Mesh(bodyGeometry, new THREE.MeshLambertMaterial({
+        			color: 0xffffff, 
+        			envMap: textureCube, 
+        			combine: THREE.MixOperation, 
+        			reflectivity: 0.2,
+        		}));
+        		bodyMesh.scale.x = bodyMesh.scale.y = bodyMesh.scale.z = s;
+	bodyMesh.castShadow = true
+	bodyMesh.receiveShadow = true
+        		scene.add(bodyMesh);
+                        bodyMesh.position.x += 10
+
+        		var wheelMeshes = [new THREE.Object3D(),
+        			new THREE.Object3D(),
+        			new THREE.Object3D(),
+        			new THREE.Object3D()];
+                                
+                        var wheelMaterial = new THREE.MultiMaterial()
+        		wheelMaterial.materials[ 0 ] = new THREE.MeshLambertMaterial({
+                                color: 0xffffff,
+                                reflectivity:0.75,
+        			envMap: textureCube, 
+        			combine: THREE.MixOperation, 
+                        });
+        		wheelMaterial.materials[ 1 ] = new THREE.MeshLambertMaterial({
+                                color: 0x333333,
+                        });
+        		
+        		for(var i=0; i< wheelMeshes.length; i++){
+        			
+        			var wheelmesh = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                                                                wheelmesh.castShadow = true
+                                                                wheelmesh.receiveShadow = true
+
+        			wheelmesh.scale.set(s,s,s);
+        			wheelGeometry.computeBoundingBox();
+        			var bb = wheelGeometry.boundingBox;
+        			// debugger
+        			wheelmesh.position.set(
+        				-s*(bb.max.x+bb.min.x)*0.5,
+        				-s*(bb.max.y+bb.min.y)*0.5,
+        				-s*(bb.max.z+bb.min.z)*0.5);
+        			wheelMeshes[i].add(wheelmesh);
+
+	                        wheelMeshes[i].position.y = (bodybb.max.y+bodybb.min.y)*s/2 * 0.5;
+        			if(i==0){
+        	                        wheelMeshes[i].position.x = (bodybb.max.x-bodybb.min.x)*s/2 * -0.9;
+        	                        wheelMeshes[i].position.z = (bodybb.max.z-bodybb.min.z)*s/2 * -0.635;
+                                }else if( i === 3 ){
+        	                        wheelMeshes[i].position.x = (bodybb.max.x-bodybb.min.x)*s/2 * -0.9;
+        	                        wheelMeshes[i].position.z = (bodybb.max.z-bodybb.min.z)*s/2 * +0.615;                                        
+                                }else if( i === 1 ){
+        	                        wheelMeshes[i].position.x = (bodybb.max.x-bodybb.min.x)*s/2 * +0.9;
+        	                        wheelMeshes[i].position.z = (bodybb.max.z-bodybb.min.z)*s/2 * -0.635;
+                                }else if( i === 2 ){
+        	                        wheelMeshes[i].position.x = (bodybb.max.x-bodybb.min.x)*s/2 * +0.9;
+        	                        wheelMeshes[i].position.z = (bodybb.max.z-bodybb.min.z)*s/2 * +0.615;
+                                }
+
+        			if(i==0 || i==3){
+        				wheelMeshes[i].quaternion.setFromAxisAngle(new THREE.Vector3(0,0,1),Math.PI);				
+        			}
+        			scene.add(wheelMeshes[i])
+                                wheelMeshes[i].position.x += 10
+        		}
+                
+        	});
+        });
+})();
+
+//////////////////////////////////////////////////////////////////////////////
+//                Code Separator
+//////////////////////////////////////////////////////////////////////////////
+        
+;(function(){
+// return
+        // Vehicle
+        var wheelLoader = new THREE.BinaryLoader();
+        wheelLoader.load("./obj/gallardo/parts/gallardo_wheel_bin.js", function(wheelGeometry){
+        	
+        	var bodyLoader = new THREE.BinaryLoader();
+        	bodyLoader.load("./obj/gallardo/parts/gallardo_body_bin.js", function(bodyGeometry){
+
+                        var s = 0.02
+        		bodyGeometry.computeBoundingBox();
+        		var bodybb = bodyGeometry.boundingBox;
+        		var textureCube = new THREE.CubeTextureLoader()
+        			.setPath( 'textures/cube/Bridge2/')
+        			.load( [ 'posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg' ] );
+
+        		var bodyMesh = new THREE.Mesh(bodyGeometry, new THREE.MeshLambertMaterial({
+        			color: 0xffffff, 
+        			envMap: textureCube, 
+        			combine: THREE.MixOperation, 
+        			reflectivity: 0.2,
+        		}));
+        		bodyMesh.scale.x = bodyMesh.scale.y = bodyMesh.scale.z = s;
+	bodyMesh.castShadow = true
+	bodyMesh.receiveShadow = true
+        		scene.add(bodyMesh);
+                        bodyMesh.position.x += 20
+
+        		var wheelMeshes = [new THREE.Object3D(),
+        			new THREE.Object3D(),
+        			new THREE.Object3D(),
+        			new THREE.Object3D()];
+                                
+                        var wheelMaterial = new THREE.MultiMaterial()
+        		wheelMaterial.materials[ 0 ] = new THREE.MeshLambertMaterial({
+                                color: 0xffffff,
+                                reflectivity:0.75,
+        			envMap: textureCube, 
+        			combine: THREE.MixOperation, 
+                        });
+        		wheelMaterial.materials[ 1 ] = new THREE.MeshLambertMaterial({
+                                color: 0x333333,
+                        });
+        		
+        		for(var i=0; i< wheelMeshes.length; i++){
+        			
+        			var wheelmesh = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                                                                wheelmesh.castShadow = true
+                                                                wheelmesh.receiveShadow = true
+
+        			wheelmesh.scale.set(s,s,s);
+        			wheelGeometry.computeBoundingBox();
+        			var bb = wheelGeometry.boundingBox;
+        			// debugger
+        			wheelmesh.position.set(
+        				-s*(bb.max.x+bb.min.x)*0.5,
+        				-s*(bb.max.y+bb.min.y)*0.5,
+        				-s*(bb.max.z+bb.min.z)*0.5);
+        			wheelMeshes[i].add(wheelmesh);
+
+	                        wheelMeshes[i].position.y = (bodybb.max.y+bodybb.min.y)*s/2;
+        			if(i==0){
+        	                        wheelMeshes[i].position.x = (bodybb.max.x-bodybb.min.x)*s/2 * -0.9;
+        	                        wheelMeshes[i].position.z = (bodybb.max.z-bodybb.min.z)*s/2 * -0.635;
+                                }else if( i === 3 ){
+        	                        wheelMeshes[i].position.x = (bodybb.max.x-bodybb.min.x)*s/2 * -0.9;
+        	                        wheelMeshes[i].position.z = (bodybb.max.z-bodybb.min.z)*s/2 * +0.615;                                        
+                                }else if( i === 1 ){
+        	                        wheelMeshes[i].position.x = (bodybb.max.x-bodybb.min.x)*s/2 * +0.9;
+        	                        wheelMeshes[i].position.z = (bodybb.max.z-bodybb.min.z)*s/2 * -0.635;
+                                }else if( i === 2 ){
+        	                        wheelMeshes[i].position.x = (bodybb.max.x-bodybb.min.x)*s/2 * +0.9;
+        	                        wheelMeshes[i].position.z = (bodybb.max.z-bodybb.min.z)*s/2 * +0.615;
+                                }
+
+        			if(i==0 || i==3){
+        				wheelMeshes[i].quaternion.setFromAxisAngle(new THREE.Vector3(0,0,1),Math.PI);				
+        			}
+        			scene.add(wheelMeshes[i])
+                                wheelMeshes[i].position.x += 20
+        		}
+                
+        	});
+        });
+})();
+
+
+
+});
 </script></body>
