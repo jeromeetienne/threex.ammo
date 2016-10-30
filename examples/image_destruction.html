@@ -18,7 +18,7 @@
 	- More ammo.js <a href="index.html">examples</a>
 	<br>
 	Here are some images
-	<a href="#images/Yeah-If-The-Lazy-Mexicans-Could-Quit-Raping-Everybody-ThatD-Be-Great-Funny-Donald-Trump-Meme-Image.jpg" onclick="javascript:location.reload()">trump</a>
+	<a href="#images/bullet_logo.png" onclick="javascript:location.reload()">bullet</a>
 	-
 	<a href="#images/threejs-logo.png" onclick="javascript:location.reload()">Three.js</a>
 	-
@@ -157,9 +157,6 @@ onRenderFcts.push(function(){
 	})
 	model.material.map = texture
 
-	var size = new THREE.Vector3(geometry.parameters.width*1
-			, geometry.parameters.height*1
-			, geometry.parameters.depth*1)
 	return
 	
 	function buildCratesPile( nCubes){		
@@ -178,11 +175,11 @@ onRenderFcts.push(function(){
 					
 					
 					
-					mesh.position.x = (x-nCubes.x/2+0.5) * mesh.scale.x * size.x
-					mesh.position.y = (y-nCubes.y/2+0.5) * mesh.scale.y * size.y
-					mesh.position.z = (z-nCubes.z/2+0.5) * mesh.scale.z * size.z
+					mesh.position.x = (x-nCubes.x/2+0.5) * mesh.scale.x * geometry.parameters.width
+					mesh.position.y = (y-nCubes.y/2+0.5) * mesh.scale.y * geometry.parameters.height
+					mesh.position.z = (z-nCubes.z/2+0.5) * mesh.scale.z * geometry.parameters.depth
 
-					mesh.position.y += nCubes.y/2 * size.y * mesh.scale.y
+					mesh.position.y += nCubes.y/2 * mesh.scale.y * geometry.parameters.height
 				        scene.add(mesh)
 				        
 					var ammoControls = new THREEx.AmmoControls(mesh)

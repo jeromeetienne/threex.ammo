@@ -130,6 +130,9 @@ startUpTHREEjs(window, {
 		event.preventDefault();
 		event.stopPropagation();
 	});
+        //////////////////////////////////////////////////////////////////////////////
+        //                Code Separator
+        //////////////////////////////////////////////////////////////////////////////
 
         //////////////////////////////////////////////////////////////////////////////
         //                Code Separator
@@ -204,27 +207,106 @@ startUpTHREEjs(window, {
 		}
 	}
 
-        //////////////////////////////////////////////////////////////////////////////
-        //                Code Separator
-        //////////////////////////////////////////////////////////////////////////////
-        
-        // ground
-	createBox(new THREE.Vector3(0, -0.5, 0), ZERO_QUATERNION, 75, 1, 75, 0, 2);
+////////////////////////////////////////////////////////////////////////////////
+//          display ground
+////////////////////////////////////////////////////////////////////////////////
 
-        // tremplin
+;(function(){
+// return
+	var geometry = new THREE.BoxGeometry(75,0.1,75)
+        var material = new THREE.MeshPhongMaterial({
+		map: new THREE.TextureLoader().load("textures/grid.png", function onLoad(texture){
+			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+			texture.repeat.set(geometry.parameters.width,geometry.parameters.depth)
+			texture.anisotropy = renderer.getMaxAnisotropy()
+		})
+	});
+        var mesh = new THREE.Mesh(geometry, material)
+	mesh.position.y = -mesh.geometry.parameters.height/2
+	mesh.receiveShadow = true
+        scene.add(mesh)
+	mesh.name = 'ground'
+
+	var ammoControls = new THREEx.AmmoControls(mesh, {
+		mass: 0
+	})
+	ammoControls.setFriction(0.9)
+	ammoControls.setRestitution(0.9)
+	ammoWorld.add(ammoControls)	
+})()
+
+////////////////////////////////////////////////////////////////////////////////
+//          display ground
+////////////////////////////////////////////////////////////////////////////////
+
+;(function(){
+// return
+	var geometry = new THREE.BoxGeometry(8,4,10)
+        var material = new THREE.MeshPhongMaterial({
+		map: new THREE.TextureLoader().load("textures/grid.png", function onLoad(texture){
+			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+			texture.repeat.set(geometry.parameters.width,geometry.parameters.depth)
+			texture.anisotropy = renderer.getMaxAnisotropy()
+		})
+	});
+        var mesh = new THREE.Mesh(geometry, material)
+	mesh.position.y = -mesh.geometry.parameters.height/2 +0.5
+	mesh.receiveShadow = true
+        scene.add(mesh)
+	mesh.name = 'tremplin'
+        
 	var quaternion = new THREE.Quaternion(0, 0, 0, 1);
 	quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 18);
-	createBox(new THREE.Vector3(0, -1.5, 0), quaternion, 8, 4, 10, 0);
+        mesh.quaternion.copy(quaternion)        
 
-        // wall of brick
-	var size = .75;
-	var nw = 8;
-	var nh = 6;
-	for (var j = 0; j < nw; j++){
-		for (var i = 0; i < nh; i++){                
-			createBox(new THREE.Vector3(size * j - (size * (nw - 1)) / 2, size * i, 10), ZERO_QUATERNION, size, size, size, 10);
-                }
-        }
+	var ammoControls = new THREEx.AmmoControls(mesh, {
+		mass: 0
+	})
+	ammoControls.setFriction(0.9)
+	ammoControls.setRestitution(0.9)
+	ammoWorld.add(ammoControls)	
+})()
+
+
+////////////////////////////////////////////////////////////////////////////////
+//          Pile of crate
+////////////////////////////////////////////////////////////////////////////////
+;(function(){
+// return
+	var geometry = new THREE.BoxGeometry(0.75, 0.75, 0.75)
+	var material = new THREE.MeshPhongMaterial({
+	});
+	var model = new THREE.Mesh(geometry, material)
+	model.castShadow = true
+	model.receiveShadow = true
+
+	var size = new THREE.Vector3().set(8,6,1)
+	buildCratesPile(size)
+
+        return
+
+	function buildCratesPile( nCubes){		
+		for(var x = 0; x < nCubes.x; x++){
+			for(var y = 0; y < nCubes.y; y++){
+				for(var z = 0; z < nCubes.z; z++){
+					var mesh = model.clone()
+
+					mesh.position.x = (x-nCubes.x/2+0.5) * mesh.scale.x * geometry.parameters.width
+					mesh.position.y = (y-nCubes.y/2+0.5) * mesh.scale.y * geometry.parameters.height
+					mesh.position.z = (z-nCubes.z/2+0.5) * mesh.scale.z * geometry.parameters.depth
+
+					mesh.position.y += nCubes.y/2 * mesh.scale.y * geometry.parameters.height
+					mesh.position.z += 6
+				        scene.add(mesh)
+				        
+					var ammoControls = new THREEx.AmmoControls(mesh)
+					ammoWorld.add(ammoControls)	
+				}
+			}
+		}
+	}
+})()
+
         
 })
 

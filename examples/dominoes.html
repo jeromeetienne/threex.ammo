@@ -125,20 +125,20 @@ onRenderFcts.push(function(){
 
 	
 	function buildCurvesVerticesBli(){
-		var angle = Math.PI/2
+		var angle = Math.PI
 		
 		var points = [];
-		var radius = 19
+		var radius = 10
 		
-		for( var i = 0; i < 150; i++){
+		for( var i = 0; i < 70; i++){
 			var point = new THREE.Vector3()
 			point.x = Math.cos(angle)*radius
 			point.z = Math.sin(angle)*radius
 	
 			points.push( point );
 			
-			radius -= 0.10
-			angle += Math.PI/8
+			radius -= 0.15
+			angle += Math.PI/16
 		}
 		return points
 	}
@@ -231,11 +231,9 @@ onRenderFcts.push(function(){
 		direction.setLength(1)
 		// console.log(direction)
 		
-		var relPos = new Ammo.btVector3(0,0.5,0)
+		var relPos = new Ammo.btVector3(0,1.5,0)
 		var impulse = new Ammo.btVector3(direction.x, direction.y, direction.z)
 		ammoControls.body.applyImpulse(impulse, relPos)
-		// 
-		// ammoControls.body.applyCentralImpulse(impulse)
 		
 		ammoControls.body.activate()
 	}

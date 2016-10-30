@@ -114,23 +114,26 @@ THREEx.AmmoControls.guessShapeFromObject3d = function(object3d){
 //          Code Separator
 ////////////////////////////////////////////////////////////////////////////////
 
+THREEx.AmmoControls.prototype.setFriction = function(value){
+        this.body.setFriction( value );
+}
 THREEx.AmmoControls.prototype.setRestitution = function(value){
-        this.physicsBody.setRestitution( value );
+        this.body.setRestitution( value );
 }
 
 THREEx.AmmoControls.prototype.setAngularVelocity = function(x,y,z){
         var btVector3 = new Ammo.btVector3( x, y, z )
 
-        this.physicsBody.setAngularVelocity( btVector3 );
+        this.body.setAngularVelocity( btVector3 );
 
-        this.physicsBody.activate()
-        // this.physicsBody.setActivationState(th.DISABLE_DEACTIVATION);
+        this.body.activate()
+        // this.body.setActivationState(th.DISABLE_DEACTIVATION);
 }
 
 THREEx.AmmoControls.prototype.setLinearVelocity = function(x,y,z){
         var btVector3 = new Ammo.btVector3( x, y, z )
-        this.physicsBody.setLinearVelocity( btVector3 );
+        this.body.setLinearVelocity( btVector3 );
 
-        this.physicsBody.activate()
-        // this.physicsBody.setActivationState(th.DISABLE_DEACTIVATION);
+        this.body.activate()
+        // this.body.setActivationState(th.DISABLE_DEACTIVATION);
 }
