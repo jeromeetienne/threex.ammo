@@ -1,0 +1,3 @@
+[submodule "examples/js/startupthree.js"]
+	path = examples/js/startupthree.js
+	url = https://github.com/jeromeetienne/startupthree.js.git
