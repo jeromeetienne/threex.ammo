@@ -12,8 +12,18 @@
 <script src='js/startupthree.js/startupThree.js'></script>
 <body style='margin: 0px; overflow: hidden; text-align:center;'>
 
+<script src="vendor/threex.sportballs/threex.sportballs.js"></script>
+<script>THREEx.SportBalls.baseURL='vendor/threex.sportballs/'</script>
 
 <script src='vendor/threex.poolball/threex.poolball.js'></script>
+
+<div style='position: absolute; top: 0px; width: 100%;font-family:arial; font-weight: bolder; padding-top: 5px; color: white;'>
+	Playing with <a href="http://threejs.org" target="_blank">three.js</a>
+	and <a href="https://github.com/kripken/ammo.js/">ammo.js</a> 
+	- More ammo.js <a href="index.html">examples</a>
+	<br> Use arrow to move the vehicle
+</div>
+
 <style>
 	#speedometer {
 		color: #ffffff;
@@ -56,6 +66,7 @@ startUpTHREEjs(window, {
 	dirLight.position.set( -15, 15, 15 );
 	dirLight.castShadow = true;
 	dirLight.shadow.bias = -0.003
+	dirLight.shadow.bias = 0.001
 	dirLight.shadow.camera.near = 1;
 	dirLight.shadow.camera.far = 50;
 	dirLight.shadow.camera.right = 25;
@@ -199,12 +210,20 @@ window.dirLight = dirLight
 //                Code Separator
 //////////////////////////////////////////////////////////////////////////////
 ;(function(){
-        var mesh = THREEx.createPoolBall()
-        mesh.scale.multiplyScalar(2)
+return
+        // var mesh = THREEx.createPoolBall()
+	// var mesh = THREEx.SportBalls.createBasket()
+	var mesh = THREEx.SportBalls.createBeach()
+	// var mesh = THREEx.SportBalls.createFootball()/
+        mesh.scale.multiplyScalar(3)
         mesh.position.x = -6
         mesh.position.y = 4
+
 	mesh.castShadow = true
 	mesh.receiveShadow = true
+	
+	mesh.quaternion.set(Math.random(), Math.random(), Math.random(), 1).normalize()
+
         scene.add(mesh)
         
 	var ammoControls = new THREEx.AmmoControls(mesh)
@@ -257,7 +276,7 @@ window.dirLight = dirLight
 //////////////////////////////////////////////////////////////////////////////
         
 ;(function(){
-// return
+return
         // Vehicle
         var wheelLoader = new THREE.BinaryLoader();
         wheelLoader.load("./obj/veyron/parts/veyron_wheel_bin.js", function(wheelGeometry){
@@ -347,7 +366,7 @@ window.dirLight = dirLight
 //////////////////////////////////////////////////////////////////////////////
         
 ;(function(){
-// return
+return
         // Vehicle
         var wheelLoader = new THREE.BinaryLoader();
         wheelLoader.load("./obj/gallardo/parts/gallardo_wheel_bin.js", function(wheelGeometry){
@@ -393,8 +412,8 @@ window.dirLight = dirLight
         		for(var i=0; i< wheelMeshes.length; i++){
         			
         			var wheelmesh = new THREE.Mesh(wheelGeometry, wheelMaterial);
-                                                                wheelmesh.castShadow = true
-                                                                wheelmesh.receiveShadow = true
+                                wheelmesh.castShadow = true
+                                wheelmesh.receiveShadow = true
 
         			wheelmesh.scale.set(s,s,s);
         			wheelGeometry.computeBoundingBox();
@@ -427,12 +446,29 @@ window.dirLight = dirLight
         			scene.add(wheelMeshes[i])
                                 wheelMeshes[i].position.x += 20
         		}
-                
         	});
         });
 })();
 
 
+
+//////////////////////////////////////////////////////////////////////////////
+//		Code Separator
+//////////////////////////////////////////////////////////////////////////////
+
+;(function(){
+
+	window.addEventListener("gamepadconnected", function(e) {
+	  console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
+	    e.gamepad.index, e.gamepad.id,
+	    e.gamepad.buttons.length, e.gamepad.axes.length);
+	});	
+	
+	window.addEventListener("gamepaddisconnected", function(e) {
+		console.log("Gamepad disconnected from index %d: %s",
+		e.gamepad.index, e.gamepad.id);
+	});
+})()
 
 });
 </script></body>

@@ -9,7 +9,6 @@ THREEx.AmmoVehicle = function(ammoWorld, pos, quat){
 		'braking' : false,
 		'left' : false,
 		'right': false,
-		'jump': false,
 	}
 	this.object3d = new THREE.Group
 	
