@@ -12,7 +12,7 @@
 
 <script src='js/startupthree.js/startupThree.js'></script>
 
-<div id='infoText' style='position: absolute; top: 0px; width: 100%;font-family:arial; font-weight: bolder; padding-top: 5px; color: white;'>
+<div id='infoText' style='position: absolute; top: 0px; width: 100%;font-family:arial; ; padding-top: 5px; color: white;'>
 	Playing with <a href="http://threejs.org" target="_blank">three.js</a>
 	and <a href="https://github.com/kripken/ammo.js/">ammo.js</a> 
 	- More ammo.js <a href="index.html">examples</a>
@@ -23,12 +23,26 @@
 	<a href="#images/threejs-logo.png" onclick="javascript:location.reload()">Three.js</a>
 	-
 	<a href="#images/WebGL_500px_June16.jpg" onclick="javascript:location.reload()">WebGL</a>
-	<br>
-	<b>Wanna try ?</b> <input type="text" placeholder="Your image's url goes here" style='font-size:100%;' size="30">
-	<br><span style='font-size: 130%'>Click to throw balls and destroy the wall!</span>
+	<style>
+		#infoText input[type="text"] {
+		  border: solid 3px #c9c9c9;
+		  transition: border 0.3s;
+		  z-index:9999;
+		}
+		#infoText input[type="text"]:focus,
+		#infoText input[type="text"].focus {
+		  border: solid 3px #969696;
+		}
+	</style>
+	<input type="text" placeholder="Put your own here" size="30" tabindex='1'>
+</div>
+<div style='position: absolute; bottom: 0px; width: 100%;font-family:arial; ; padding-top: 5px; color: white;'>
+	<span style='font-size: 130%'>Click to throw balls and destroy the wall!</span>
 </div><body style='margin: 0px; overflow: hidden; text-align:center;'><script>
 
-startUpTHREEjs(window, {}, function(demo){
+startUpTHREEjs(window, {
+	// cameraControls : false
+}, function(demo){
 
 ////////////////////////////////////////////////////////////////////////////////
 //          setup info image url
@@ -38,7 +52,7 @@ startUpTHREEjs(window, {}, function(demo){
 	var domElement = document.querySelector('#infoText input')
 	domElement.addEventListener('keyup', function(event){
 		if (event.keyCode !== 13) return
-		location.hash = '#'+domElement.value
+		location.hash = '#'+encodeURIComponent(domElement.value)
 		location.reload()
 	})
 })()
@@ -227,12 +241,12 @@ onRenderFcts.push(function(){
 		if ( event.target !== renderer.domElement )	return
 		eventCoord.set(event.clientX, event.clientY)
 	}, false);
-
+	
 	renderer.domElement.addEventListener( 'mouseup', function( event ) {
 		if ( event.target !== renderer.domElement )	return
 		if( Math.abs(eventCoord.x - event.clientX) > 5 )	return
 		if( Math.abs(eventCoord.y - event.clientY) > 5 )	return
-
+	
 		if ( clickRequest === true ) return
 		clickRequest = true;
 		mouseCoords.x =   ( eventCoord.x / window.innerWidth ) * 2 - 1

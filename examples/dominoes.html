@@ -321,7 +321,7 @@ onRenderFcts.push(function(){
 	var model = THREEx.createPoolBall()
 
 	// var model = THREEx.SportBalls.createSoftball()
-	model.scale.multiplyScalar(4)
+	model.scale.multiplyScalar(2)
 	model.castShadow = true
 	model.receiveShadow = true
 
@@ -371,7 +371,7 @@ onRenderFcts.push(function(){
 		ballBody.setRestitution(0.4)
 
 		position.copy( raycaster.ray.direction );
-		position.multiplyScalar( 14*3 );
+		position.multiplyScalar( 20 );
 		ballBody.setLinearVelocity( new Ammo.btVector3( position.x, position.y, position.z ) );
 	})
 })()
