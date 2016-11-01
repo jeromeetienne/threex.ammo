@@ -9,11 +9,12 @@
 
 <script src="vendor/threex.sportballs/threex.sportballs.js"></script>
 <script>THREEx.SportBalls.baseURL='vendor/threex.sportballs/'</script>
+<script src='vendor/threex.poolball/threex.poolball.js'></script>
 
 <script src='js/startupthree.js/startupThree.js'></script>
 
 <div style='position: absolute; top: 0px; width: 100%;font-family:arial; font-weight: bolder; padding-top: 5px; color: white;'>
-	Playing with <a href="http://threejs.org" target="_Squarish Curvenk">three.js</a>
+	Playing with <a href="http://threejs.org" target="blank">three.js</a>
 	and <a href="https://github.com/kripken/ammo.js/">ammo.js</a> 
 	- More ammo.js <a href="index.html">examples</a>
 	<br>
@@ -23,8 +24,11 @@
 	<a href="#squarish_curve" onclick="javascript:location.reload()">Squarish Curve</a>	
 	-
 	<a href="#snakeCurve" onclick="javascript:location.reload()">snakeCurve</a>	
-</div><body style='margin: 0px; overflow: hidden; text-align:center;'><script>
-
+</div>
+<body style='margin: 0px; overflow: hidden; text-align:center;'><script>
+//////////////////////////////////////////////////////////////////////////////
+//		startup three.js
+//////////////////////////////////////////////////////////////////////////////
 startUpTHREEjs(window, {}, function(demo){
 
 camera.position.y = 10;
@@ -110,53 +114,52 @@ onRenderFcts.push(function(){
 	//		Code Separator
 	//////////////////////////////////////////////////////////////////////////////
 	var curveBuilders = {}
-	curveBuilders['squarish_curve'] = function(){
-		var points = [];
-		var halfWidth = 10
-		var halfHeight = 10
-		
-		for( var i = 0; i < 4; i++){
-			points.push( new THREE.Vector3(-halfWidth,0,+halfHeight) );
-			points.push( new THREE.Vector3(-halfWidth,0,-halfHeight) );
-			points.push( new THREE.Vector3(+halfWidth,0,-halfHeight) );
-			points.push( new THREE.Vector3(+halfWidth,0,+halfHeight) );
-			
-			halfWidth *= 0.7
-			halfHeight *= 0.7
-		}
-		return points
-	}
 
-	
 	curveBuilders['pure_spirale'] = function(){
 		var angle = Math.PI
 		
 		var points = [];
-		var radius = 15
+		var radius = 10
 		
-		for( var i = 0; i < 200; i++){
+		for( var i = 0; i < 80; i++){
 			var point = new THREE.Vector3()
 			point.x = Math.cos(angle)*radius
 			point.z = Math.sin(angle)*radius
 	
 			points.push( point );
 			
-			radius -= 0.05
+			radius -= 0.1
 			angle += Math.PI/16
 		}
 		return points
 	}
 
+
+	curveBuilders['squarish_curve'] = function(){
+		var points = [];
+		var halfWidth = 10
+		var halfHeight = 10
+		points.push( new THREE.Vector3(-halfWidth,0,+halfHeight) );
+		points.push( new THREE.Vector3(-halfWidth,0,-halfHeight) );
+		points.push( new THREE.Vector3(+halfWidth,0,-halfHeight) );
+		points.push( new THREE.Vector3(+halfWidth,0,+halfHeight) );
+
+		points.push( new THREE.Vector3(-halfWidth,0,+halfHeight) );
+
+		return points
+	}
+
+	
 	curveBuilders['snakeCurve'] = function(){
 		var points = [];
 		var halfWidth = 2
 		var halfHeight = 14
 		
-		for( var i = 0; i < 3; i++){
-			points.push( new THREE.Vector3(+halfHeight, 0, -9 -halfWidth + i*halfWidth*4) );
-			points.push( new THREE.Vector3(-halfHeight, 0, -9 -halfWidth + i*halfWidth*4) );
-			points.push( new THREE.Vector3(-halfHeight, 0, -9 +halfWidth + i*halfWidth*4) );
-			points.push( new THREE.Vector3(+halfHeight, 0, -9 +halfWidth + i*halfWidth*4) );
+		for( var i = 0; i < 2; i++){
+			points.push( new THREE.Vector3(+halfHeight, 0, -halfWidth + i*halfWidth*4) );
+			points.push( new THREE.Vector3(-halfHeight, 0, -halfWidth + i*halfWidth*4) );
+			points.push( new THREE.Vector3(-halfHeight, 0, +halfWidth + i*halfWidth*4) );
+			points.push( new THREE.Vector3(+halfHeight, 0, +halfWidth + i*halfWidth*4) );
 		}
 		return points
 	}
@@ -208,7 +211,7 @@ onRenderFcts.push(function(){
 	//////////////////////////////////////////////////////////////////////////////
 	//		Add Dominoes
 	//////////////////////////////////////////////////////////////////////////////
-	var nDominoes = Math.floor(curves.getLength()/1.2)
+	var nDominoes = Math.floor(curves.getLength()/1.4)
 
 	// nDominoes = 1
 	var dominoesControls = []
@@ -237,13 +240,18 @@ onRenderFcts.push(function(){
 	//////////////////////////////////////////////////////////////////////////////
 
 	setTimeout(function(){
-		pushDomino(dominoesControls[0])		
-	}, 1000)
+		pushFirstDomino()
+	}, 2000)
 
-	function pushDomino(ammoControls){
+	function pushFirstDomino(){
+		var ammoControls = dominoesControls[0]
+		pushDomino(ammoControls, false)		
+	}
+
+	function pushDomino(ammoControls, backward){
 		ammoControls.object3d.updateMatrixWorld(true)
 		var rotationMatrix = new THREE.Matrix4().extractRotation( ammoControls.object3d.matrixWorld )
-		var direction = new THREE.Vector3(0,0,1).applyMatrix4(rotationMatrix)
+		var direction = new THREE.Vector3(0,0,1 * (backward ? -1: +1)).applyMatrix4(rotationMatrix)
 		direction.setLength(1)
 		// console.log(direction)
 		
@@ -255,13 +263,21 @@ onRenderFcts.push(function(){
 	}
 	
 	//////////////////////////////////////////////////////////////////////////////
-	//		Code Separator
+	//		Monitor last domino
 	//////////////////////////////////////////////////////////////////////////////
 
 	;(function(){
-		setTimeout(startMonitoring, 2000);
+		setTimeout(function(){
+			startMonitoring(function onMoved(){
+				setTimeout(function(){
+					gotoNextCurve()
+				}, 1000)
+			})
+		}, 2000);
 		
-		function startMonitoring(){
+		return
+		
+		function startMonitoring(onMoved){
 			var ammoControls = dominoesControls[dominoesControls.length-1]
 			var lastPosition = ammoControls.object3d.position.clone();
 
@@ -269,16 +285,96 @@ onRenderFcts.push(function(){
 				if( lastPosition === null )	return
 				if( lastPosition.clone().sub(ammoControls.object3d.position).length() < 0.5 )	return
 				lastPosition = null
-				console.log('last moved')
-				
-				setTimeout(function(){
-					location.reload()
-				}, 1000)
+
+				onMoved()
 			})
 			
 		}
-		
+
+		function gotoNextCurve(){
+			var curveNames = Object.keys(curveBuilders)
+			var index = curveNames.indexOf(curveName)
+			console.assert(index !== -1)
+			index = (index+1) % curveNames.length
+			var nextCurveName = curveNames[index]
+			
+			location.hash = '#'+nextCurveName
+			location.reload()
+		}
 	})()
+
+
+////////////////////////////////////////////////////////////////////////////////
+//          throw a ball in front of the camera 
+////////////////////////////////////////////////////////////////////////////////
+;(function(){
+// return
+	var clickRequest = false;
+	var mouseCoords = new THREE.Vector2();
+	
+	// var geometry = new THREE.SphereGeometry(1, 16, 10)
+	// var material = new THREE.MeshNormalMaterial({
+	// 	wireframe: true
+	// });
+	// var model = new THREE.Mesh(geometry, material)
+	// var model = THREEx.SportBalls.createBasket()
+	var model = THREEx.createPoolBall()
+
+	// var model = THREEx.SportBalls.createSoftball()
+	model.scale.multiplyScalar(4)
+	model.castShadow = true
+	model.receiveShadow = true
+
+	var eventCoord = new THREE.Vector2
+	renderer.domElement.addEventListener( 'mousedown', function( event ) {
+		if ( event.target !== renderer.domElement )	return
+		eventCoord.set(event.clientX, event.clientY)
+	}, false);
+
+	renderer.domElement.addEventListener( 'mouseup', function( event ) {
+		if ( event.target !== renderer.domElement )	return
+		if( Math.abs(eventCoord.x - event.clientX) > 5 )	return
+		if( Math.abs(eventCoord.y - event.clientY) > 5 )	return
+
+		if ( clickRequest === true ) return
+		clickRequest = true;
+		mouseCoords.x =   ( eventCoord.x / window.innerWidth ) * 2 - 1
+		mouseCoords.y = - ( eventCoord.y / window.innerHeight) * 2 + 1
+	}, false );
+
+	onRenderFcts.push(function(){
+		if ( clickRequest === false ) return
+		clickRequest = false;
+
+		var raycaster = new THREE.Raycaster();
+		raycaster.setFromCamera( mouseCoords, camera );
+
+		// Creates a ball
+		var position = new THREE.Vector3();
+		var quaternion = new THREE.Quaternion();
+
+		position.copy( raycaster.ray.direction );
+		position.add( raycaster.ray.origin );
+		quaternion.set( Math.random(), Math.random(), Math.random(), Math.random() ).normalize();
+		
+		// create mesh
+		var mesh = model.clone()
+		mesh.position.copy(position)
+		mesh.quaternion.copy(quaternion)
+	        scene.add(mesh)
+	        
+		var ammoControls = new THREEx.AmmoControls(mesh)
+		ammoWorld.add(ammoControls)	
+
+		var ballBody = ammoControls.body
+		ballBody.setFriction( 1 );
+		ballBody.setRestitution(0.4)
+
+		position.copy( raycaster.ray.direction );
+		position.multiplyScalar( 14*3 );
+		ballBody.setLinearVelocity( new Ammo.btVector3( position.x, position.y, position.z ) );
+	})
+})()
 
 })()
 
