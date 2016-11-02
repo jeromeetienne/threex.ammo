@@ -28,16 +28,16 @@ THREEx.AmmoVehicle = function(ammoWorld, pos, quat){
 	var chassisLength = 4;
 	var massVehicle = 800;
 
-	var wheelAxisPositionBack = -1.4;
-	var wheelHalfTrackBack = 1;
+	var wheelAxisPositionBack = -1.8;
+	var wheelHalfTrackBack = 1.15;
 	var wheelAxisHeightBack = .3;
-	var wheelRadiusBack = .6;
-	var wheelWidthBack = .3;
+	var wheelRadiusBack = .45;
+	var wheelWidthBack = .2;
 
-	var wheelAxisPositionFront = 1.4;
-	var wheelHalfTrackFront = 1;
+	var wheelAxisPositionFront = 1.55;
+	var wheelHalfTrackFront = 1.15;
 	var wheelAxisHeightFront = .3;
-	var wheelRadiusFront = .35;
+	var wheelRadiusFront = .45;
 	var wheelWidthFront = .2;
 
 	var friction = 1000;
@@ -179,30 +179,19 @@ THREEx.AmmoVehicle = function(ammoWorld, pos, quat){
 		wheelInfo.set_m_frictionSlip(friction);
 		wheelInfo.set_m_rollInfluence(rollInfluence);
 
-		wheelMeshes[index] = createWheelMesh(radius, width);
+		wheelMeshes[index] = createWheelMesh(radius, width, index);
 	}
-
-
-	function createWheelMesh(radius, width) {
-		var geometry = new THREE.CylinderGeometry(radius, radius, width, 24, 1);
-		geometry.rotateZ(Math.PI / 2);
-		var wheelMesh = new THREE.Mesh(geometry, materialInteractive);
-                wheelMesh.castShadow = true
-
-                var geometry = new THREE.BoxGeometry(width * 1.5, radius * 1.75, radius*.25, 1, 1, 1)
-                var boxMesh  = new THREE.Mesh(geometry, materialInteractive);
-		wheelMesh.add(boxMesh);
-
+	function createWheelMesh(radius, width, index) {
+		var wheelMesh = new THREE.Group()
+		wheelMesh.name = 'wheel_'+index
 		_this.object3d.add(wheelMesh)
-
 		return wheelMesh
 	}
 
 	function createChassisMesh(width, height, depth) {
-		var shape = new THREE.BoxGeometry(width, height, depth, 1, 1, 1);
-		var mesh = new THREE.Mesh(shape, materialInteractive);
-                mesh.castShadow = true
+		var mesh = new THREE.Group()
+		mesh.name = 'chassis'
 		_this.object3d.add(mesh);
 		return mesh;
-	}
+	}	
 }

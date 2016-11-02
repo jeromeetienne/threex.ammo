@@ -55,7 +55,7 @@ startUpTHREEjs(window, {
 	var light	= new THREE.AmbientLight( 0x020202 ) 
 	scene.add( light )
 	// add a light in front
-	var light	= new THREE.DirectionalLight('white', 0.2)
+	var light	= new THREE.DirectionalLight('white', 1)
 	light.position.set(0.5, 0.5, -2)
 	scene.add( light ) 
 })()
@@ -104,6 +104,57 @@ window.dirLight = dirLight
 	var ammoVehicle = new THREEx.AmmoVehicle(ammoWorld, new THREE.Vector3(0, 4, -20), new THREE.Quaternion(0, 0, 0, 1));
         scene.add(ammoVehicle.object3d)
 
+	//////////////////////////////////////////////////////////////////////////////
+	//		Code Separator
+	//////////////////////////////////////////////////////////////////////////////
+
+	// vehicleSkinBasic(ammoVehicle)
+	vehicleSkinVeyron(ammoVehicle)
+	function vehicleSkinBasic(ammoVehicle){
+		var chassisWidth = 1.8;
+		var chassisHeight = .6;
+		var chassisLength = 4;
+		var massVehicle = 800;
+
+		var wheelAxisPositionBack = -1.8;
+		var wheelHalfTrackBack = 1.15;
+		var wheelAxisHeightBack = .3;
+		var wheelRadiusBack = .45;
+		var wheelWidthBack = .2;
+
+		var wheelAxisPositionFront = 1.55;
+		var wheelHalfTrackFront = 1.15;
+		var wheelAxisHeightFront = .3;
+		var wheelRadiusFront = .45;
+		var wheelWidthFront = .2;
+
+		var geometry = new THREE.BoxGeometry(chassisWidth, chassisHeight, chassisLength, 1, 1, 1);
+		var material = new THREE.MeshPhongMaterial()
+		var mesh = new THREE.Mesh(geometry, material);
+	        mesh.castShadow = true
+
+		var container = ammoVehicle.object3d.getObjectByName('chassis')		
+		container.add(mesh)
+		
+		buildWheel(wheelRadiusFront, wheelWidthFront, 0)
+		buildWheel(wheelRadiusFront, wheelWidthFront, 1)
+		buildWheel(wheelRadiusBack, wheelWidthBack, 2)
+		buildWheel(wheelRadiusBack, wheelWidthBack, 3)
+		function buildWheel(radius, width, index){
+			var geometry = new THREE.CylinderGeometry(radius, radius, width, 24, 1);
+			geometry.rotateZ(Math.PI / 2);
+			var material = new THREE.MeshPhongMaterial()
+			var wheelMesh = new THREE.Mesh(geometry, material);
+		        wheelMesh.castShadow = true
+			
+		        var geometry = new THREE.BoxGeometry(width * 1.5, radius * 1.75, radius*.25, 1, 1, 1)
+			var material = new THREE.MeshPhongMaterial()
+		        var boxMesh  = new THREE.Mesh(geometry, material);
+			wheelMesh.add(boxMesh);
+			var container = ammoVehicle.object3d.getObjectByName('wheel_'+index)
+			container.add(wheelMesh)		
+		}		
+	}
         //////////////////////////////////////////////////////////////////////////////
         //                update speedometer
         //////////////////////////////////////////////////////////////////////////////
@@ -210,7 +261,7 @@ window.dirLight = dirLight
 //                Code Separator
 //////////////////////////////////////////////////////////////////////////////
 ;(function(){
-return
+// return
         // var mesh = THREEx.createPoolBall()
 	// var mesh = THREEx.SportBalls.createBasket()
 	var mesh = THREEx.SportBalls.createBeach()
@@ -271,12 +322,62 @@ return
 	}
 })()
 
+
 //////////////////////////////////////////////////////////////////////////////
 //                Code Separator
 //////////////////////////////////////////////////////////////////////////////
         
-;(function(){
-// return
+function vehicleSkinVeyron(ammoVehicle){
+	var textureCube = new THREE.CubeTextureLoader()
+		.setPath( 'textures/cube/Bridge2/')
+		.load( [ 'posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg' ] );
+        var s = 0.02
+
+	var mlib = {
+
+	"Orange": 	new THREE.MeshLambertMaterial( { color: 0xff6600, envMap: textureCube, combine: THREE.MixOperation, reflectivity: 0.3 } ),
+	"Blue": 	new THREE.MeshLambertMaterial( { color: 0x001133, envMap: textureCube, combine: THREE.MixOperation, reflectivity: 0.3 } ),
+	"Red": 		new THREE.MeshLambertMaterial( { color: 0x660000, envMap: textureCube, combine: THREE.MixOperation, reflectivity: 0.25 } ),
+	"Black": 	new THREE.MeshLambertMaterial( { color: 0x000000, envMap: textureCube, combine: THREE.MixOperation, reflectivity: 0.15 } ),
+	"White":	new THREE.MeshLambertMaterial( { color: 0xffffff, envMap: textureCube, combine: THREE.MixOperation, reflectivity: 0.25 } ),
+
+	"Carmine": 	new THREE.MeshPhongMaterial( { color: 0x770000, specular:0xffaaaa, envMap: textureCube, combine: THREE.MultiplyOperation } ),
+	"Gold": 	new THREE.MeshPhongMaterial( { color: 0xaa9944, specular:0xbbaa99, shininess:50, envMap: textureCube, combine: THREE.MultiplyOperation } ),
+	"Bronze":	new THREE.MeshPhongMaterial( { color: 0x150505, specular:0xee6600, shininess:10, envMap: textureCube, combine: THREE.MixOperation, reflectivity: 0.25 } ),
+	"Chrome": 	new THREE.MeshPhongMaterial( { color: 0xffffff, specular:0xffffff, envMap: textureCube, combine: THREE.MultiplyOperation } ),
+
+	"Orange metal": new THREE.MeshLambertMaterial( { color: 0xff6600, envMap: textureCube, combine: THREE.MultiplyOperation } ),
+	"Blue metal": 	new THREE.MeshLambertMaterial( { color: 0x001133, envMap: textureCube, combine: THREE.MultiplyOperation } ),
+	"Red metal": 	new THREE.MeshLambertMaterial( { color: 0x770000, envMap: textureCube, combine: THREE.MultiplyOperation } ),
+	"Green metal": 	new THREE.MeshLambertMaterial( { color: 0x007711, envMap: textureCube, combine: THREE.MultiplyOperation } ),
+	"Black metal":	new THREE.MeshLambertMaterial( { color: 0x222222, envMap: textureCube, combine: THREE.MultiplyOperation } ),
+
+	"Pure chrome": 	new THREE.MeshLambertMaterial( { color: 0xffffff, envMap: textureCube } ),
+	"Dark chrome":	new THREE.MeshLambertMaterial( { color: 0x444444, envMap: textureCube } ),
+	"Darker chrome":new THREE.MeshLambertMaterial( { color: 0x222222, envMap: textureCube } ),
+
+	"Black glass": 	new THREE.MeshLambertMaterial( { color: 0x101016, envMap: textureCube, opacity: 0.975, transparent: true } ),
+	"Dark glass":	new THREE.MeshLambertMaterial( { color: 0x101046, envMap: textureCube, opacity: 0.25, transparent: true } ),
+	"Blue glass":	new THREE.MeshLambertMaterial( { color: 0x668899, envMap: textureCube, opacity: 0.75, transparent: true } ),
+	"Light glass":	new THREE.MeshBasicMaterial( { color: 0x223344, envMap: textureCube, opacity: 0.25, transparent: true, combine: THREE.MixOperation, reflectivity: 0.25 } ),
+
+	"Red glass":	new THREE.MeshLambertMaterial( { color: 0xff0000, opacity: 0.75, transparent: true } ),
+	"Yellow glass":	new THREE.MeshLambertMaterial( { color: 0xffffaa, opacity: 0.75, transparent: true } ),
+	"Orange glass":	new THREE.MeshLambertMaterial( { color: 0x995500, opacity: 0.75, transparent: true } ),
+
+	"Orange glass 50":	new THREE.MeshLambertMaterial( { color: 0xffbb00, opacity: 0.5, transparent: true } ),
+	"Red glass 50": 	new THREE.MeshLambertMaterial( { color: 0xff0000, opacity: 0.5, transparent: true } ),
+
+	"Fullblack rough":	new THREE.MeshLambertMaterial( { color: 0x000000 } ),
+	"Black rough":		new THREE.MeshLambertMaterial( { color: 0x050505 } ),
+	"Darkgray rough":	new THREE.MeshLambertMaterial( { color: 0x090909 } ),
+	"Red rough":		new THREE.MeshLambertMaterial( { color: 0x330500 } ),
+
+	"Darkgray shiny":	new THREE.MeshPhongMaterial( { color: 0x000000, specular: 0x050505 } ),
+	"Gray shiny":		new THREE.MeshPhongMaterial( { color: 0x050505, shininess: 20 } )
+
+	};
+
         // Vehicle
         var wheelLoader = new THREE.BinaryLoader();
         wheelLoader.load("./obj/veyron/parts/veyron_wheel_bin.js", function(wheelGeometry){
@@ -284,34 +385,39 @@ return
         	var bodyLoader = new THREE.BinaryLoader();
         	bodyLoader.load("./obj/veyron/parts/veyron_body_bin.js", function(bodyGeometry){
 
-                        var s = 0.02
-        		bodyGeometry.computeBoundingBox();
-        		var bodybb = bodyGeometry.boundingBox;
-        		var textureCube = new THREE.CubeTextureLoader()
-        			.setPath( 'textures/cube/Bridge2/')
-        			.load( [ 'posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg' ] );
+			bodyGeometry.applyMatrix( new THREE.Matrix4().makeScale(s,s,s) )
+			bodyGeometry.computeBoundingBox();
+			var bb = bodyGeometry.boundingBox;
+			bodyGeometry.applyMatrix( new THREE.Matrix4()
+				.makeTranslation(
+					-(bb.max.x+bb.min.x)*0.5,
+					-(bb.max.y+bb.min.y)*0.5,
+					-(bb.max.z+bb.min.z)*0.5
+				)
+			)
 
-        		var bodyMesh = new THREE.Mesh(bodyGeometry, new THREE.MeshLambertMaterial({
-        			color: 0xffffff, 
-        			envMap: textureCube, 
-        			combine: THREE.MixOperation, 
-        			reflectivity: 0.2,
-        		}));
-        		bodyMesh.scale.x = bodyMesh.scale.y = bodyMesh.scale.z = s;
-	bodyMesh.castShadow = true
-	bodyMesh.receiveShadow = true
-        		scene.add(bodyMesh);
-                        bodyMesh.position.x += 10
+			var bodyMaterial = new THREE.MultiMaterial()
+			bodyMaterial.materials.push( mlib[ "Pure chrome" ]) 		// back / top / front torso
+			bodyMaterial.materials.push( mlib[ "Pure chrome" ])		// glass
+			bodyMaterial.materials.push( mlib[ "Pure chrome" ])		// sides torso
+			bodyMaterial.materials.push( mlib[ "Pure chrome" ])		// backlights
+			bodyMaterial.materials.push( mlib[ "Pure chrome" ])		// backsignals
+			bodyMaterial.materials.push( mlib[ "Pure chrome" ])		// engine
+			bodyMaterial.materials.push( mlib[ "Pure chrome" ])		// backlights
+			bodyMaterial.materials.push( mlib[ "Pure chrome" ])	// backsignals
 
-        		var wheelMeshes = [new THREE.Object3D(),
-        			new THREE.Object3D(),
-        			new THREE.Object3D(),
-        			new THREE.Object3D()];
-                                
+
+        		var bodyMesh = new THREE.Mesh(bodyGeometry, bodyMaterial);
+        		bodyMesh.position.y = 0.25
+			bodyMesh.castShadow = true
+			// bodyMesh.receiveShadow = true
+			var container = ammoVehicle.object3d.getObjectByName('chassis')
+			container.add(bodyMesh)
+	
                         var wheelMaterial = new THREE.MultiMaterial()
         		wheelMaterial.materials[ 0 ] = new THREE.MeshLambertMaterial({
                                 color: 0xffffff,
-                                reflectivity:0.75,
+                                reflectivity: 0.75,
         			envMap: textureCube, 
         			combine: THREE.MixOperation, 
                         });
@@ -319,138 +425,31 @@ return
                                 color: 0x333333,
                         });
         		
-        		for(var i=0; i< wheelMeshes.length; i++){
-        			
+			wheelGeometry.applyMatrix( new THREE.Matrix4().makeScale(s,s,s) )
+			wheelGeometry.computeBoundingBox();
+			var bb = wheelGeometry.boundingBox;
+			wheelGeometry.applyMatrix( new THREE.Matrix4()
+				.makeTranslation(
+					-(bb.max.x+bb.min.x)*0.5,
+					-(bb.max.y+bb.min.y)*0.5,
+					-(bb.max.z+bb.min.z)*0.5
+				)
+			)
+			
+        		for(var i=0; i< 4; i++){        			
         			var wheelmesh = new THREE.Mesh(wheelGeometry, wheelMaterial);
-                                                                wheelmesh.castShadow = true
-                                                                wheelmesh.receiveShadow = true
-
-        			wheelmesh.scale.set(s,s,s);
-        			wheelGeometry.computeBoundingBox();
-        			var bb = wheelGeometry.boundingBox;
-        			// debugger
-        			wheelmesh.position.set(
-        				-s*(bb.max.x+bb.min.x)*0.5,
-        				-s*(bb.max.y+bb.min.y)*0.5,
-        				-s*(bb.max.z+bb.min.z)*0.5);
-        			wheelMeshes[i].add(wheelmesh);
-
-	                        wheelMeshes[i].position.y = (bodybb.max.y+bodybb.min.y)*s/2 * 0.5;
-        			if(i==0){
-        	                        wheelMeshes[i].position.x = (bodybb.max.x-bodybb.min.x)*s/2 * -0.9;
-        	                        wheelMeshes[i].position.z = (bodybb.max.z-bodybb.min.z)*s/2 * -0.635;
-                                }else if( i === 3 ){
-        	                        wheelMeshes[i].position.x = (bodybb.max.x-bodybb.min.x)*s/2 * -0.9;
-        	                        wheelMeshes[i].position.z = (bodybb.max.z-bodybb.min.z)*s/2 * +0.615;                                        
-                                }else if( i === 1 ){
-        	                        wheelMeshes[i].position.x = (bodybb.max.x-bodybb.min.x)*s/2 * +0.9;
-        	                        wheelMeshes[i].position.z = (bodybb.max.z-bodybb.min.z)*s/2 * -0.635;
-                                }else if( i === 2 ){
-        	                        wheelMeshes[i].position.x = (bodybb.max.x-bodybb.min.x)*s/2 * +0.9;
-        	                        wheelMeshes[i].position.z = (bodybb.max.z-bodybb.min.z)*s/2 * +0.615;
-                                }
-
+                                wheelmesh.castShadow = true
+                                wheelmesh.receiveShadow = true
         			if(i==0 || i==3){
-        				wheelMeshes[i].quaternion.setFromAxisAngle(new THREE.Vector3(0,0,1),Math.PI);				
+        				wheelmesh.quaternion.setFromAxisAngle(new THREE.Vector3(0,0,1),Math.PI);				
         			}
-        			scene.add(wheelMeshes[i])
-                                wheelMeshes[i].position.x += 10
+				var container = ammoVehicle.object3d.getObjectByName('wheel_'+i)
+				container.add(wheelmesh)
         		}
                 
         	});
         });
-})();
-
-//////////////////////////////////////////////////////////////////////////////
-//                Code Separator
-//////////////////////////////////////////////////////////////////////////////
-        
-;(function(){
-// return
-        // Vehicle
-        var wheelLoader = new THREE.BinaryLoader();
-        wheelLoader.load("./obj/gallardo/parts/gallardo_wheel_bin.js", function(wheelGeometry){
-        	
-        	var bodyLoader = new THREE.BinaryLoader();
-        	bodyLoader.load("./obj/gallardo/parts/gallardo_body_bin.js", function(bodyGeometry){
-
-                        var s = 0.02
-        		bodyGeometry.computeBoundingBox();
-        		var bodybb = bodyGeometry.boundingBox;
-        		var textureCube = new THREE.CubeTextureLoader()
-        			.setPath( 'textures/cube/Bridge2/')
-        			.load( [ 'posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg' ] );
-
-        		var bodyMesh = new THREE.Mesh(bodyGeometry, new THREE.MeshLambertMaterial({
-        			color: 0xffffff, 
-        			envMap: textureCube, 
-        			combine: THREE.MixOperation, 
-        			reflectivity: 0.2,
-        		}));
-        		bodyMesh.scale.x = bodyMesh.scale.y = bodyMesh.scale.z = s;
-	bodyMesh.castShadow = true
-	bodyMesh.receiveShadow = true
-        		scene.add(bodyMesh);
-                        bodyMesh.position.x += 20
-
-        		var wheelMeshes = [new THREE.Object3D(),
-        			new THREE.Object3D(),
-        			new THREE.Object3D(),
-        			new THREE.Object3D()];
-                                
-                        var wheelMaterial = new THREE.MultiMaterial()
-        		wheelMaterial.materials[ 0 ] = new THREE.MeshLambertMaterial({
-                                color: 0xffffff,
-                                reflectivity:0.75,
-        			envMap: textureCube, 
-        			combine: THREE.MixOperation, 
-                        });
-        		wheelMaterial.materials[ 1 ] = new THREE.MeshLambertMaterial({
-                                color: 0x333333,
-                        });
-        		
-        		for(var i=0; i< wheelMeshes.length; i++){
-        			
-        			var wheelmesh = new THREE.Mesh(wheelGeometry, wheelMaterial);
-                                wheelmesh.castShadow = true
-                                wheelmesh.receiveShadow = true
-
-        			wheelmesh.scale.set(s,s,s);
-        			wheelGeometry.computeBoundingBox();
-        			var bb = wheelGeometry.boundingBox;
-        			// debugger
-        			wheelmesh.position.set(
-        				-s*(bb.max.x+bb.min.x)*0.5,
-        				-s*(bb.max.y+bb.min.y)*0.5,
-        				-s*(bb.max.z+bb.min.z)*0.5);
-        			wheelMeshes[i].add(wheelmesh);
-
-	                        wheelMeshes[i].position.y = (bodybb.max.y+bodybb.min.y)*s/2;
-        			if(i==0){
-        	                        wheelMeshes[i].position.x = (bodybb.max.x-bodybb.min.x)*s/2 * -0.9;
-        	                        wheelMeshes[i].position.z = (bodybb.max.z-bodybb.min.z)*s/2 * -0.635;
-                                }else if( i === 3 ){
-        	                        wheelMeshes[i].position.x = (bodybb.max.x-bodybb.min.x)*s/2 * -0.9;
-        	                        wheelMeshes[i].position.z = (bodybb.max.z-bodybb.min.z)*s/2 * +0.615;                                        
-                                }else if( i === 1 ){
-        	                        wheelMeshes[i].position.x = (bodybb.max.x-bodybb.min.x)*s/2 * +0.9;
-        	                        wheelMeshes[i].position.z = (bodybb.max.z-bodybb.min.z)*s/2 * -0.635;
-                                }else if( i === 2 ){
-        	                        wheelMeshes[i].position.x = (bodybb.max.x-bodybb.min.x)*s/2 * +0.9;
-        	                        wheelMeshes[i].position.z = (bodybb.max.z-bodybb.min.z)*s/2 * +0.615;
-                                }
-
-        			if(i==0 || i==3){
-        				wheelMeshes[i].quaternion.setFromAxisAngle(new THREE.Vector3(0,0,1),Math.PI);				
-        			}
-        			scene.add(wheelMeshes[i])
-                                wheelMeshes[i].position.x += 20
-        		}
-        	});
-        });
-})();
-
-
+};
 
 //////////////////////////////////////////////////////////////////////////////
 //		Code Separator
@@ -468,6 +467,22 @@ return
 		console.log("Gamepad disconnected from index %d: %s",
 		e.gamepad.index, e.gamepad.id);
 	});
+	
+	onRenderFcts.push(function(){
+		var gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads : []);
+		if (!gamepads) return;
+		
+		var gamepad = gamepads[0];
+return
+		if( gamepad.axes[0] <= -1 )	ammoVehicle.actions.left = true
+		else 				ammoVehicle.actions.left = false
+		if( gamepad.axes[0] >= +1 )	ammoVehicle.actions.right = true
+		else 				ammoVehicle.actions.right = false
+		if( gamepad.axes[1] >= +1 )	ammoVehicle.actions.break = true
+		else 				ammoVehicle.actions.break = false
+		if( gamepad.axes[1] <= -1 )	ammoVehicle.actions.acceleration = true
+		else 				ammoVehicle.actions.acceleration = false
+	})
 })()
 
 });
