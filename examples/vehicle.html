@@ -8,6 +8,7 @@
 <script src='../threex-ammoworld.js'></script>
 <script src='../threex-ammocontrols.js'></script>
 <script src='../threex-ammovehicle.js'></script>
+<script src='../threex-ammoterrain.js'></script>
 
 <script src='js/startupthree.js/startupThree.js'></script>
 <body style='margin: 0px; overflow: hidden; text-align:center;'>
@@ -322,7 +323,6 @@ window.dirLight = dirLight
 	}
 })()
 
-
 //////////////////////////////////////////////////////////////////////////////
 //                Code Separator
 //////////////////////////////////////////////////////////////////////////////
@@ -452,7 +452,7 @@ function vehicleSkinVeyron(ammoVehicle){
 };
 
 //////////////////////////////////////////////////////////////////////////////
-//		Code Separator
+//		Gamepad prototype
 //////////////////////////////////////////////////////////////////////////////
 
 ;(function(){
@@ -484,6 +484,24 @@ return
 		else 				ammoVehicle.actions.acceleration = false
 	})
 })()
+//////////////////////////////////////////////////////////////////////////////
+//		terrain
+//////////////////////////////////////////////////////////////////////////////
+;(function(){
+        // Heightfield parameters
+        var terrain3dWidth = 100;
+        var terrain3dDepth = 100;
+        var terrainWidth = 128;
+        var terrainDepth = 128;
+        var terrainMaxHeight = 3;
+        var terrainMinHeight = 0;
 
+	var ammoTerrain = new THREEx.AmmoTerrain( terrainWidth, terrainDepth, terrainMinHeight, terrainMaxHeight, terrain3dWidth, terrain3dDepth)
+	
+	// ammoWorld.add( ammoTerrain );
+	
+        ammoWorld.physicsWorld.addRigidBody( ammoTerrain.body );
+	scene.add( ammoTerrain.object3d );
+})()
 });
 </script></body>

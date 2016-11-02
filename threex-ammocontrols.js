@@ -25,7 +25,7 @@ THREEx.AmmoControls = function(object3d, options){
         var margin = 0.05;
         shape.setMargin( margin );
 
-        if( mass !== 0){
+        if( mass !== 0 ){
                 var localInertia = new Ammo.btVector3( 0, 10, 0 );
                 shape.calculateLocalInertia( mass, localInertia );                
         }
