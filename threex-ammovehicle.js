@@ -91,7 +91,7 @@ THREEx.AmmoVehicle = function(ammoWorld, pos, quat){
 	addWheel(false, new Ammo.btVector3(-wheelHalfTrackBack, wheelAxisHeightBack, wheelAxisPositionBack), wheelRadiusBack, wheelWidthBack, BACK_LEFT);
 	addWheel(false, new Ammo.btVector3(wheelHalfTrackBack, wheelAxisHeightBack, wheelAxisPositionBack), wheelRadiusBack, wheelWidthBack, BACK_RIGHT);
         
-// TODO WHATAHTAA this is a global
+// TODO WHATAHTAA this is a glov
 	onRenderFcts.push(update);
 
         return

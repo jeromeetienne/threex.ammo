@@ -8,6 +8,7 @@
 <script src='../threex-ammoworld.js'></script>
 <script src='../threex-ammocontrols.js'></script>
 <script src='../threex-ammovehicle.js'></script>
+<script src='../threex-ammovehiclecontrols.js'></script>
 <script src='../threex-ammoterrain.js'></script>
 
 <script src='js/startupthree.js/startupThree.js'></script>
@@ -42,51 +43,11 @@
 
 startUpTHREEjs(window, {
 		// stats : false,
-		// cameraControls : false
+		cameraControls : false
 	}, function(demo){
 
-        controls.enableKeys = false
-
-//////////////////////////////////////////////////////////////////////////////////
-//		set 3 point lighting						//
-//////////////////////////////////////////////////////////////////////////////////
-
-;(function(){
-	// add a ambient light
-	var light	= new THREE.AmbientLight( 0x020202 ) 
-	scene.add( light )
-	// add a light in front
-	var light	= new THREE.DirectionalLight('white', 1)
-	light.position.set(0.5, 0.5, -2)
-	scene.add( light ) 
-})()
 
 
-;(function(){
-	var dirLight = new THREE.DirectionalLight( 0xffffff, 0.8 );
-	dirLight.position.set( -15, 15, 15 );
-	dirLight.castShadow = true;
-	dirLight.shadow.bias = -0.003
-	dirLight.shadow.bias = 0.001
-	dirLight.shadow.camera.near = 1;
-	dirLight.shadow.camera.far = 50;
-	dirLight.shadow.camera.right = 25;
-	dirLight.shadow.camera.left = - 25;
-	dirLight.shadow.camera.top	= 25;
-	dirLight.shadow.camera.bottom = - 25;
-	dirLight.shadow.mapSize.x = 1024;
-	dirLight.shadow.mapSize.y = 1024;
-	scene.add( dirLight );
-window.dirLight = dirLight
-	// scene.add( new THREE.CameraHelper( dirLight.shadow.camera ) );	
-})()
-        //////////////////////////////////////////////////////////////////////////////
-        //                Code Separator
-        //////////////////////////////////////////////////////////////////////////////
-	camera.position.x = -4.84;
-	camera.position.y = 4.39;
-	camera.position.z = -35.11;
-	camera.lookAt( new THREE.Vector3( 0.33, -0.40, 0.85 ) );
         
         ////////////////////////////////////////////////////////////////////////////////
         //          Code Separator
@@ -96,6 +57,55 @@ window.dirLight = dirLight
         onRenderFcts.push(function(){
         	ammoWorld.update()
         })
+
+
+//////////////////////////////////////////////////////////////////////////////////
+//		set 3 point lighting						//
+//////////////////////////////////////////////////////////////////////////////////
+
+;(function(){
+	// add a ambient light
+	var light	= new THREE.AmbientLight( 0x202020) 
+	// var light	= new THREE.HemisphereLight(0.2) 
+	scene.add( light )
+	// add a light in front
+	var light	= new THREE.DirectionalLight('white', 0.5)
+	light.position.set(0.2, 0.5, -2)
+	scene.add( light ) 
+})()
+
+
+;(function(){
+	var dirLight = new THREE.DirectionalLight( 0xffffff, 0.8 );
+	dirLight.position.set( -15, 10, 15 ).setLength(60)
+	dirLight.castShadow = true;
+	dirLight.shadow.bias = -0.003
+	dirLight.shadow.bias = 0.001
+	dirLight.shadow.camera.near = 1;
+	dirLight.shadow.camera.far = 200;
+	dirLight.shadow.camera.right = 25*3;
+	dirLight.shadow.camera.left = - 25*3;
+	dirLight.shadow.camera.top	= 25;
+	dirLight.shadow.camera.bottom = - 25;
+	dirLight.shadow.mapSize.x = 512;
+	dirLight.shadow.mapSize.y = 512;
+	scene.add( dirLight );
+
+	// scene.add( new THREE.CameraHelper( dirLight.shadow.camera ) );	
+})()
+        //////////////////////////////////////////////////////////////////////////////
+        //                Code Separator
+        //////////////////////////////////////////////////////////////////////////////
+        // controls.enableKeys = false
+	// camera.position.x = -4.84;
+	// camera.position.y = 4.39;
+	// camera.position.z = -35.11;
+	// camera.lookAt( new THREE.Vector3( 0.33, -0.40, 0.85 ) );
+	
+	var cameraControls = new THREEx.AmmoVehicleControls(camera)
+	onRenderFcts.push(function(){
+		cameraControls.update(ammoVehicle)
+	})
 
         //////////////////////////////////////////////////////////////////////////////
         //                add vehicule
@@ -111,6 +121,7 @@ window.dirLight = dirLight
 
 	// vehicleSkinBasic(ammoVehicle)
 	vehicleSkinVeyron(ammoVehicle)
+
 	function vehicleSkinBasic(ammoVehicle){
 		var chassisWidth = 1.8;
 		var chassisHeight = .6;
@@ -203,8 +214,8 @@ window.dirLight = dirLight
 ////////////////////////////////////////////////////////////////////////////////
 
 ;(function(){
-// return
-	var geometry = new THREE.BoxGeometry(75,0.1,75)
+return
+	var geometry = new THREE.BoxGeometry(60,0.1,180)
         var material = new THREE.MeshPhongMaterial({
 		map: new THREE.TextureLoader().load("textures/grid.png", function onLoad(texture){
 			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
@@ -231,7 +242,7 @@ window.dirLight = dirLight
 ////////////////////////////////////////////////////////////////////////////////
 
 ;(function(){
-// return
+return
 	var geometry = new THREE.BoxGeometry(8,4,10)
         var material = new THREE.MeshPhongMaterial({
 		map: new THREE.TextureLoader().load("textures/grid.png", function onLoad(texture){
@@ -265,11 +276,11 @@ window.dirLight = dirLight
 // return
         // var mesh = THREEx.createPoolBall()
 	// var mesh = THREEx.SportBalls.createBasket()
-	var mesh = THREEx.SportBalls.createBeach()
-	// var mesh = THREEx.SportBalls.createFootball()/
-        mesh.scale.multiplyScalar(3)
-        mesh.position.x = -6
-        mesh.position.y = 4
+	// var mesh = THREEx.SportBalls.createBeach()
+	var mesh = THREEx.SportBalls.createFootball()
+        mesh.scale.multiplyScalar(4)
+        // mesh.position.x = -6
+        mesh.position.y = 5
 
 	mesh.castShadow = true
 	mesh.receiveShadow = true
@@ -278,9 +289,11 @@ window.dirLight = dirLight
 
         scene.add(mesh)
         
-	var ammoControls = new THREEx.AmmoControls(mesh)
-	// ammoControls.setFriction(0.9)
-	// ammoControls.setRestitution(0.9)
+	var ammoControls = new THREEx.AmmoControls(mesh, {
+		mass : 30
+	})
+	ammoControls.setFriction(0.9)
+	ammoControls.setRestitution(0.95)
 	ammoWorld.add(ammoControls)	
 })()
 
@@ -288,7 +301,7 @@ window.dirLight = dirLight
 //          Pile of crate
 ////////////////////////////////////////////////////////////////////////////////
 ;(function(){
-// return
+return
 	var geometry = new THREE.BoxGeometry(0.75, 0.75, 0.75)
 	var material = new THREE.MeshPhongMaterial({
 	});
@@ -489,19 +502,111 @@ return
 //////////////////////////////////////////////////////////////////////////////
 ;(function(){
         // Heightfield parameters
-        var terrain3dWidth = 100;
-        var terrain3dDepth = 100;
-        var terrainWidth = 128;
-        var terrainDepth = 128;
-        var terrainMaxHeight = 3;
+        var terrain3dWidth = 60;
+        var terrain3dDepth = 120;
+        var terrainWidth = 128*2;
+        var terrainDepth = 256*2;
+        var terrainMaxHeight = 24*2;
         var terrainMinHeight = 0;
 
 	var ammoTerrain = new THREEx.AmmoTerrain( terrainWidth, terrainDepth, terrainMinHeight, terrainMaxHeight, terrain3dWidth, terrain3dDepth)
 	
 	// ammoWorld.add( ammoTerrain );
-	
+	ammoTerrain.body.setRestitution(0.9)
         ammoWorld.physicsWorld.addRigidBody( ammoTerrain.body );
 	scene.add( ammoTerrain.object3d );
 })()
+
+
+////////////////////////////////////////////////////////////////////////////////
+//          wall around the terrain
+////////////////////////////////////////////////////////////////////////////////
+
+;(function(){
+        var terrain3dWidth = 60;
+        var terrain3dHeight = 30;
+        var terrain3dDepth = 120;
+	
+	// east/west model
+	var geometry = new THREE.PlaneGeometry(terrain3dHeight, terrain3dDepth)
+	var material = new THREE.MeshLambertMaterial({
+		map: new THREE.TextureLoader().load("textures/grid.png", function onLoad(texture){
+			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+			texture.repeat.set(geometry.parameters.width,geometry.parameters.height)
+			// texture.anisotropy = renderer.getMaxAnisotropy()
+		}),
+		
+	});
+	var model = new THREE.Mesh(geometry, material)
+	model.receiveShadow = true
+	
+	// east wall
+	var mesh = model.clone()
+	mesh.position.x = terrain3dWidth/2
+	mesh.position.y = terrain3dHeight/2
+	mesh.rotateX( Math.PI/2)
+	mesh.rotateY(-Math.PI/2)
+	addStaticPlane(mesh)
+	
+	// west wall
+	var mesh = model.clone()
+	mesh.position.x = -terrain3dWidth/2
+	mesh.position.y = terrain3dHeight/2
+	mesh.rotateX( Math.PI/2)
+	mesh.rotateY( Math.PI/2)
+	addStaticPlane(mesh)
+	
+	//////////////////////////////////////////////////////////////////////////////
+	//		Code Separator
+	//////////////////////////////////////////////////////////////////////////////
+
+	// north/south model
+	var geometry = new THREE.PlaneGeometry(terrain3dHeight, terrain3dWidth)
+	var material = new THREE.MeshLambertMaterial({
+		map: new THREE.TextureLoader().load("textures/grid.png", function onLoad(texture){
+			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+			texture.repeat.set(geometry.parameters.width,geometry.parameters.height)
+			// texture.anisotropy = renderer.getMaxAnisotropy()
+		}),
+		
+	});
+	var model = new THREE.Mesh(geometry, material)
+	model.receiveShadow = true
+	
+	// north wall
+	var mesh = model.clone()
+	mesh.position.z =-terrain3dDepth/2
+	mesh.position.y = terrain3dHeight/2
+	// mesh.rotateX( Math.PI/2)
+	mesh.rotateZ(Math.PI/2)
+	addStaticPlane(mesh)
+	
+	// south wall
+	var mesh = model.clone()
+	mesh.position.z = terrain3dDepth/2
+	mesh.position.y = terrain3dHeight/2
+	mesh.rotateY( Math.PI )
+	mesh.rotateZ( Math.PI/2)
+	addStaticPlane(mesh)
+
+	return
+	
+	//////////////////////////////////////////////////////////////////////////////
+	//		Code Separator
+	//////////////////////////////////////////////////////////////////////////////
+
+	function addStaticPlane(mesh){
+		scene.add(mesh)
+		// Create infinite ground plane 50 meters down. This is to make sure things don't fall down to infinity and irritate our collision detection
+	        var shape = new Ammo.btStaticPlaneShape(new Ammo.btVector3(0, 0, 1), 0);
+		var ammoControls = new THREEx.AmmoControls(mesh, {
+			mass: 0,
+			shape: shape,
+		})
+		ammoControls.setRestitution(1.0)
+		ammoWorld.add(ammoControls)		
+	}
+})()
+
 });
 </script></body>

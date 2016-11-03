@@ -12,8 +12,9 @@ THREEx.AmmoTerrain = function( terrainWidth, terrainDepth, terrainMinHeight, ter
 	 *   initPhysics
 	 */
 	
-	var heightData = generateHeight( terrainWidth, terrainDepth, terrainMinHeight, terrainMaxHeight );
-	
+	// var heightData = generateHeightSinus( terrainWidth, terrainDepth, terrainMinHeight, terrainMaxHeight );
+	// var heightData = generateHeightFlat( terrainWidth, terrainDepth, terrainMinHeight, terrainMaxHeight );
+	var heightData = generateHeightRocket( terrainWidth, terrainDepth, terrainMinHeight, terrainMaxHeight );
 	//////////////////////////////////////////////////////////////////////////////
 	//		Code Separator
 	//////////////////////////////////////////////////////////////////////////////
@@ -25,13 +26,17 @@ THREEx.AmmoTerrain = function( terrainWidth, terrainDepth, terrainMinHeight, ter
                 vertices[ i*3 + 1 ] = heightData[ i ];                        
         }
         geometry.computeVertexNormals();
-        
-        var material = new THREE.MeshPhongMaterial( { color: 0xC7C7C7 } );
+        var material = new THREE.MeshLambertMaterial({
+		map: new THREE.TextureLoader().load("textures/grid.png", function onLoad(texture){
+			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+			texture.repeat.set(terrain3dWidth,terrain3dDepth)
+			texture.anisotropy = renderer.getMaxAnisotropy()
+		}),
+		side : THREE.DoubleSide
+	});        
+        // var material = new THREE.MeshPhongMaterial( { color: 0xC7C7C7 } );
         var meshGround = new THREE.Mesh( geometry, material );
         meshGround.receiveShadow = true;
-        meshGround.castShadow = true;
-
-        // scene.add( mesh );
 
 	//////////////////////////////////////////////////////////////////////////////
 	//		Code Separator
@@ -120,18 +125,15 @@ THREEx.AmmoTerrain = function( terrainWidth, terrainDepth, terrainMinHeight, ter
 	//////////////////////////////////////////////////////////////////////////////
 	//		Code Separator
 	//////////////////////////////////////////////////////////////////////////////
-        function generateHeight( width, depth, minHeight, maxHeight ) {
-                // Generates the height data (a sinus wave)
-                var size = width * depth;
-                var data = new Float32Array(size);
+        function generateHeightSinus( width, depth, minHeight, maxHeight ) {
+                var data = new Float32Array(width * depth);
                 
                 var heightRange = maxHeight - minHeight;
                 var halfWidth = width / 2;
                 var halfDepth = depth / 2;
                 var phaseMult = 12;
                 
-                var index = 0;
-                for ( var z = 0; z < depth; z++ ) {
+                for (var index = 0, z = 0; z < depth; z++ ) {
                         for ( var x = 0; x < width; x++ ) {
                                 var radius = Math.sqrt(
                                         Math.pow( ( x - halfWidth ) / halfWidth, 2.0 ) +
@@ -139,12 +141,60 @@ THREEx.AmmoTerrain = function( terrainWidth, terrainDepth, terrainMinHeight, ter
                                 );
                                 
                                 var height = ( Math.sin( radius * phaseMult ) + 1 ) * 0.5 * heightRange + minHeight;
-                                data[ index ] = height;
-                                index++;
+                                data[ index++ ] = height;
                         }
                 }
-                return data;                
+                return data;
         }	
+        function generateHeightFlat( width, depth, minHeight, maxHeight ) {
+                var data = new Float32Array(width * depth);
+                
+                for(var index = 0, z = 0; z < depth; z++ ) {
+                        for ( var x = 0; x < width; x++ ) {
+				var height = minHeight
+				
+                                data[ index++ ] = height;
+                        }
+                }
+                return data;
+        }		
+        function generateHeightRocket( width, depth, minHeight, maxHeight ) {
+                var data = new Float32Array(width * depth);
+		var radiusX = 24*2
+		var radiusZ = 24*2
+		var radiusY = radiusX/4
+		console.log('radiusX', radiusX)
+                
+                for(var index = 0, z = 0; z < depth; z++ ) {
+                        for ( var x = 0; x < width; x++ ) {
+				var height = minHeight
+				
+				if( x > width-radiusX ){
+					var delta = x - (width-radiusX)
+					var angle = Math.acos(delta/radiusX)
+					height = Math.max(height, minHeight - Math.sin(angle)*radiusY + radiusY)
+				}
+				if( x < radiusX ){
+					var delta = radiusX - x
+					var angle = Math.acos(delta/radiusX)
+					height = Math.max(height, minHeight - Math.sin(angle)*radiusY + radiusY)
+				}
+				if( z > depth-radiusZ ){
+					var delta = z - (depth-radiusZ)
+					var angle = Math.acos(delta/radiusZ)
+					height = Math.max(height, minHeight - Math.sin(angle)*radiusY + radiusY)
+				}
+				if( z < radiusZ ){
+					var delta = radiusZ - z
+					var angle = Math.acos(delta/radiusZ)
+					height = Math.max(height, minHeight - Math.sin(angle)*radiusY + radiusY)
+				}
+				
+                                data[ index++ ] = height;
+                        }
+                }
+                return data;
+        }		
 
 }
 

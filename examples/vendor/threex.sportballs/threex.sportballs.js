@@ -61,7 +61,7 @@ THREEx.SportBalls.createFootball	= function(){
 	var material	= new THREE.MeshPhongMaterial({
 		map	: texture,
 		bumpMap	: texture,
-		bumpScale: 0.01,
+		bumpScale: 0.1,
 	})
 	var mesh	= new THREE.Mesh( geometry, material );
 	return mesh	
