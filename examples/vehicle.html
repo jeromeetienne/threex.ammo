@@ -172,15 +172,13 @@ startUpTHREEjs(window, {
 		'breaking' : 0,
 	}
 	
-	window.addEventListener("gamepadconnected", function(e) {
-	  console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
-	    e.gamepad.index, e.gamepad.id,
-	    e.gamepad.buttons.length, e.gamepad.axes.length);
+	window.addEventListener("gamepadconnected", function(event) {
+		console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.", event.gamepad.index, event.gamepad.id,
+			event.gamepad.buttons.length, event.gamepad.axes.length);
 	});	
 	
 	window.addEventListener("gamepaddisconnected", function(e) {
-		console.log("Gamepad disconnected from index %d: %s",
-		e.gamepad.index, e.gamepad.id);
+		consolevent.log("Gamepad disconnected from index %d: %s", event.gamepad.index, event.gamepad.id);
 	});
 	
 	onRenderFcts.push(function(){
@@ -189,11 +187,12 @@ startUpTHREEjs(window, {
 		
 		var gamepad = gamepads[0];
 		if( gamepad === undefined ) 	return
-		// debugger
+		// for a xbox 360 wired..
 		vehicleGamepadActions['steering'] = -gamepad.axes[0]
 		vehicleGamepadActions['acceleration'] = gamepad.buttons[7].value
 		vehicleGamepadActions['breaking'] = gamepad.buttons[6].value
 	})
+
 	//////////////////////////////////////////////////////////////////////////////
 	//		Code Separator
 	//////////////////////////////////////////////////////////////////////////////
