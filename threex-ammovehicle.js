@@ -13,15 +13,6 @@ THREEx.AmmoVehicle = function(ammoWorld, pos, quat){
 	this.object3d = new THREE.Group
 	
 	
-	// - Global variables -
-	var DISABLE_DEACTIVATION = 4;
-	var TRANSFORM_AUX = new Ammo.btTransform();
-	var ZERO_QUATERNION = new THREE.Quaternion(0, 0, 0, 1);
-
-	// Graphics variables
-        var materialInteractive = new THREE.MeshPhongMaterial()
-
-
 	// Vehicle contants
 	var chassisWidth = 1.8;
 	var chassisHeight = .6;
@@ -62,8 +53,11 @@ THREEx.AmmoVehicle = function(ammoWorld, pos, quat){
 	var localInertia = new Ammo.btVector3(0, 0, 0);
 	geometry.calculateLocalInertia(massVehicle, localInertia);
 	var body = new Ammo.btRigidBody(new Ammo.btRigidBodyConstructionInfo(massVehicle, motionState, geometry, localInertia));
+
+	var DISABLE_DEACTIVATION = 4;
 	body.setActivationState(DISABLE_DEACTIVATION);
 	ammoWorld.physicsWorld.addRigidBody(body);
+
 	var chassisMesh = createChassisMesh(chassisWidth, chassisHeight, chassisLength);
 
 	// Raycast Vehicle

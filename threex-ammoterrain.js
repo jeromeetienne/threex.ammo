@@ -12,8 +12,6 @@ THREEx.AmmoTerrain = function( terrainWidth, terrainDepth, terrainMinHeight, ter
 	 *   initPhysics
 	 */
 	
-	// var heightData = generateHeightSinus( terrainWidth, terrainDepth, terrainMinHeight, terrainMaxHeight );
-	// var heightData = generateHeightFlat( terrainWidth, terrainDepth, terrainMinHeight, terrainMaxHeight );
 	var heightData = generateHeightRocket( terrainWidth, terrainDepth, terrainMinHeight, terrainMaxHeight );
 	//////////////////////////////////////////////////////////////////////////////
 	//		Code Separator
