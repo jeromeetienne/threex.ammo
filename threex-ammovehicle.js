@@ -2,7 +2,7 @@
 
 var THREEx = THREEx || {}
 
-THREEx.AmmoVehicle = function(ammoWorld, pos, quat){
+THREEx.AmmoVehicle = function(btPhysicsWorld, position, quaternion){
 	var _this = this
 
 	this.object3d = new THREE.Group
@@ -59,24 +59,24 @@ THREEx.AmmoVehicle = function(ammoWorld, pos, quat){
 	var geometry = new Ammo.btBoxShape(new Ammo.btVector3(opt.chassisWidth * .5, opt.chassisHeight * .5, opt.chassisLength * .5));
 	var transform = new Ammo.btTransform();
 	transform.setIdentity();
-	transform.setOrigin(new Ammo.btVector3(pos.x, pos.y, pos.z));
-	transform.setRotation(new Ammo.btQuaternion(quat.x, quat.y, quat.z, quat.w));
+	transform.setOrigin(new Ammo.btVector3(position.x, position.y, position.z));
+	transform.setRotation(new Ammo.btQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w));
 	var motionState = new Ammo.btDefaultMotionState(transform);
 	var localInertia = new Ammo.btVector3(0, 0, 0);
 	geometry.calculateLocalInertia(opt.massVehicle, localInertia);
-	var body = new Ammo.btRigidBody(new Ammo.btRigidBodyConstructionInfo(opt.massVehicle, motionState, geometry, localInertia));
+	var chassisBody = new Ammo.btRigidBody(new Ammo.btRigidBodyConstructionInfo(opt.massVehicle, motionState, geometry, localInertia));
 
 	var DISABLE_DEACTIVATION = 4;
-	body.setActivationState(DISABLE_DEACTIVATION);
-	
-	ammoWorld.physicsWorld.addRigidBody(body);
+	chassisBody.setActivationState(DISABLE_DEACTIVATION);
+this.chassisBody = chassisBody
+	btPhysicsWorld.addRigidBody(chassisBody);
 
 	// Raycast Vehicle
 	var tuning = new Ammo.btVehicleTuning();
-	var rayCaster = new Ammo.btDefaultVehicleRaycaster(ammoWorld.physicsWorld);
-	var vehicle = new Ammo.btRaycastVehicle(tuning, body, rayCaster);
+	var rayCaster = new Ammo.btDefaultVehicleRaycaster(btPhysicsWorld);
+	var vehicle = new Ammo.btRaycastVehicle(tuning, chassisBody, rayCaster);
 	vehicle.setCoordinateSystem(0, 1, 2);
-	ammoWorld.physicsWorld.addAction(vehicle);
+	btPhysicsWorld.addAction(vehicle);
 
 	this.vehicle = vehicle
 
@@ -87,14 +87,19 @@ THREEx.AmmoVehicle = function(ammoWorld, pos, quat){
 	var FRONT_RIGHT = 1;
 	var BACK_LEFT = 2;
 	var BACK_RIGHT = 3;
-	addWheel(true,  new Ammo.btVector3( opt.wheelHalfTrackFront, opt.wheelAxisHeightFront, opt.wheelAxisPositionFront), opt.wheelRadiusFront, opt.wheelWidthFront, FRONT_LEFT);
-	addWheel(true,  new Ammo.btVector3(-opt.wheelHalfTrackFront, opt.wheelAxisHeightFront, opt.wheelAxisPositionFront), opt.wheelRadiusFront, opt.wheelWidthFront, FRONT_RIGHT);
-	addWheel(false, new Ammo.btVector3(-opt.wheelHalfTrackBack , opt.wheelAxisHeightBack , opt.wheelAxisPositionBack) , opt.wheelRadiusBack , opt.wheelWidthBack , BACK_LEFT);
-	addWheel(false, new Ammo.btVector3( opt.wheelHalfTrackBack , opt.wheelAxisHeightBack , opt.wheelAxisPositionBack) , opt.wheelRadiusBack , opt.wheelWidthBack , BACK_RIGHT);
+	createWheel(true,  new Ammo.btVector3( opt.wheelHalfTrackFront, opt.wheelAxisHeightFront, opt.wheelAxisPositionFront), opt.wheelRadiusFront, opt.wheelWidthFront, FRONT_LEFT);
+	createWheel(true,  new Ammo.btVector3(-opt.wheelHalfTrackFront, opt.wheelAxisHeightFront, opt.wheelAxisPositionFront), opt.wheelRadiusFront, opt.wheelWidthFront, FRONT_RIGHT);
+	createWheel(false, new Ammo.btVector3(-opt.wheelHalfTrackBack , opt.wheelAxisHeightBack , opt.wheelAxisPositionBack) , opt.wheelRadiusBack , opt.wheelWidthBack , BACK_LEFT);
+	createWheel(false, new Ammo.btVector3( opt.wheelHalfTrackBack , opt.wheelAxisHeightBack , opt.wheelAxisPositionBack) , opt.wheelRadiusBack , opt.wheelWidthBack , BACK_RIGHT);
         
 	
 	_this.updateGamepad = function(actions) {
-		
+		// var actions = {
+		// 	'steering' : 0,		// between [-1,1] -1 means left, +1 means right
+		// 	'breaking' : 0,		// between [0,1]. 0 means no breaking, +1 means full breaking
+		// 	'acceleration' : 0,	// between [0,1]. 0 means no acceleration, +1 means full acceleration
+		// }
+
 		var breakingForce = actions.breaking * opt.maxEngineForce
 		vehicle.setBrake(breakingForce / 2, FRONT_LEFT);
 		vehicle.setBrake(breakingForce / 2, FRONT_RIGHT);
@@ -123,6 +128,7 @@ THREEx.AmmoVehicle = function(ammoWorld, pos, quat){
 			// 	'braking' : false,	// true if the vehicle is breaking
 			// 	'left' : false,		// true if the vehicle should go left
 			// 	'right': false,		// true if the vehicle should go right
+			// 	'jump': false,		// true if the vehicle should go jump
 			// }
 			
 			
@@ -161,6 +167,12 @@ THREEx.AmmoVehicle = function(ammoWorld, pos, quat){
 					}
 				}
 			}
+			
+			if( actions.jump ){
+				actions.jump = false
+				var impulse = new Ammo.btVector3(0,opt.massVehicle*5,0)
+				chassisBody.applyCentralImpulse(impulse)
+			}
 
 			vehicle.applyEngineForce(engineForce, BACK_LEFT);
 			vehicle.applyEngineForce(engineForce, BACK_RIGHT);
@@ -195,7 +207,7 @@ THREEx.AmmoVehicle = function(ammoWorld, pos, quat){
 		chassisMesh.quaternion.set(quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());		
 	}
 
-	function addWheel(isFront, position, radius, width, index) {
+	function createWheel(isFront, position, radius, width, index) {
 		var wheelDirectionCS0 = new Ammo.btVector3(0, -1, 0);
 		var wheelAxleCS = new Ammo.btVector3(-1, 0, 0);
 
@@ -214,12 +226,5 @@ THREEx.AmmoVehicle = function(ammoWorld, pos, quat){
                 
 		wheelInfo.set_m_frictionSlip(opt.friction);
 		wheelInfo.set_m_rollInfluence(opt.rollInfluence);
-
-
-		// var wheelMesh = new THREE.Group()
-		// wheelMesh.name = 'wheel_'+index
-		// wheelMeshes[index] = wheelMesh
-		// 
-		// _this.object3d.add(wheelMesh)
 	}
 }

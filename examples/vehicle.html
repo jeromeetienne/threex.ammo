@@ -47,7 +47,14 @@ startUpTHREEjs(window, {
 	}, function(demo){
 
 
-
+        //////////////////////////////////////////////////////////////////////////////
+        //                Code Separator
+        //////////////////////////////////////////////////////////////////////////////
+	
+	var cameraControls = new THREEx.AmmoVehicleControls(camera)
+	onRenderFcts.push(function(){
+		cameraControls.update(ammoVehicle)
+	})
         
         ////////////////////////////////////////////////////////////////////////////////
         //          Code Separator
@@ -93,19 +100,7 @@ startUpTHREEjs(window, {
 
 	// scene.add( new THREE.CameraHelper( dirLight.shadow.camera ) );	
 })()
-        //////////////////////////////////////////////////////////////////////////////
-        //                Code Separator
-        //////////////////////////////////////////////////////////////////////////////
-        // controls.enableKeys = false
-	// camera.position.x = -4.84;
-	// camera.position.y = 4.39;
-	// camera.position.z = -35.11;
-	// camera.lookAt( new THREE.Vector3( 0.33, -0.40, 0.85 ) );
-	
-	var cameraControls = new THREEx.AmmoVehicleControls(camera)
-	onRenderFcts.push(function(){
-		cameraControls.update(ammoVehicle)
-	})
+
 
         //////////////////////////////////////////////////////////////////////////////
         //                add vehicule
@@ -114,14 +109,13 @@ startUpTHREEjs(window, {
         // vehicule
         var position = new THREE.Vector3(0, 5, 0)
 	var quaternion = new THREE.Quaternion(0, 0, 0, 1).setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
-	var ammoVehicle = new THREEx.AmmoVehicle(ammoWorld, position, quaternion);
+	var ammoVehicle = new THREEx.AmmoVehicle(ammoWorld.physicsWorld, position, quaternion);
 	onRenderFcts.push(function(){
-		// ammoVehicle.updateKeyboard(vehicleKeyboardActions)
-		ammoVehicle.updateGamepad(vehicleGamepadActions)
+		ammoVehicle.updateKeyboard(vehicleKeyboardActions)
+		// ammoVehicle.updateGamepad(vehicleGamepadActions)
 	})
         scene.add(ammoVehicle.object3d)
-// window.ammoVehicle = ammoVehicle
-
+window.ammoVehicle = ammoVehicle
 
         //////////////////////////////////////////////////////////////////////////////
         //                handle keyboard
@@ -134,18 +128,11 @@ startUpTHREEjs(window, {
 	}
 	
 	var keysActions = {
-		'w':'acceleration',
-		'ArrowUp':'acceleration',
-		'i':'acceleration',
-		's':'braking',
-		'ArrowDown':'braking',
-		'k':'braking',
-		'a':'left',
-		'ArrowLeft':'left',
-		'j':'left',
-		'd':'right',
-		'ArrowRight':'right',
-		'l':'right',
+		'w':'acceleration', 'ArrowUp':'acceleration', 'i':'acceleration',
+		's':'braking', 'ArrowDown':'braking', 'k':'braking',
+		'a':'left', 'ArrowLeft':'left', 'j':'left',
+		'd':'right', 'ArrowRight':'right', 'l':'right',
+		' ': 'jump'
 	};
                         
 	window.addEventListener( 'keydown', function keydown(event) {
