@@ -112,46 +112,111 @@ startUpTHREEjs(window, {
         //////////////////////////////////////////////////////////////////////////////
 
         // vehicule
-	var ammoVehicle = new THREEx.AmmoVehicle(ammoWorld, new THREE.Vector3(0, 4, -20), new THREE.Quaternion(0, 0, 0, 1));
+        var position = new THREE.Vector3(0, 5, 0)
+	var quaternion = new THREE.Quaternion(0, 0, 0, 1).setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+	var ammoVehicle = new THREEx.AmmoVehicle(ammoWorld, position, quaternion);
+	onRenderFcts.push(function(){
+		// ammoVehicle.updateKeyboard(vehicleKeyboardActions)
+		ammoVehicle.updateGamepad(vehicleGamepadActions)
+	})
         scene.add(ammoVehicle.object3d)
+// window.ammoVehicle = ammoVehicle
 
+
+        //////////////////////////////////////////////////////////////////////////////
+        //                handle keyboard
+        //////////////////////////////////////////////////////////////////////////////
+	var vehicleKeyboardActions = {
+		'acceleration' : false,
+		'braking' : false,
+		'left' : false,
+		'right': false,
+	}
+	
+	var keysActions = {
+		'w':'acceleration',
+		'ArrowUp':'acceleration',
+		'i':'acceleration',
+		's':'braking',
+		'ArrowDown':'braking',
+		'k':'braking',
+		'a':'left',
+		'ArrowLeft':'left',
+		'j':'left',
+		'd':'right',
+		'ArrowRight':'right',
+		'l':'right',
+	};
+                        
+	window.addEventListener( 'keydown', function keydown(event) {
+		if(keysActions[event.key] === undefined ) return
+		vehicleKeyboardActions[keysActions[event.key]] = true;
+		event.preventDefault();
+		event.stopPropagation();
+	});
+	window.addEventListener( 'keyup', function keyup(event) {
+		if(keysActions[event.key] === undefined ) return
+		vehicleKeyboardActions[keysActions[event.key]] = false;
+		event.preventDefault();
+		event.stopPropagation();
+	});
+
+
+	//////////////////////////////////////////////////////////////////////////////
+	//		Gamepad prototype
+	//////////////////////////////////////////////////////////////////////////////
+
+	var vehicleGamepadActions = {
+		'acceleration' : 0,
+		'steering' : 0,
+		'breaking' : 0,
+	}
+	
+	window.addEventListener("gamepadconnected", function(e) {
+	  console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
+	    e.gamepad.index, e.gamepad.id,
+	    e.gamepad.buttons.length, e.gamepad.axes.length);
+	});	
+	
+	window.addEventListener("gamepaddisconnected", function(e) {
+		console.log("Gamepad disconnected from index %d: %s",
+		e.gamepad.index, e.gamepad.id);
+	});
+	
+	onRenderFcts.push(function(){
+		var gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads : []);
+		if (!gamepads || gamepads.length === 0 ) return;
+		
+		var gamepad = gamepads[0];
+		if( gamepad === undefined ) 	return
+		// debugger
+		vehicleGamepadActions['steering'] = -gamepad.axes[0]
+		vehicleGamepadActions['acceleration'] = gamepad.buttons[7].value
+		vehicleGamepadActions['breaking'] = gamepad.buttons[6].value
+	})
 	//////////////////////////////////////////////////////////////////////////////
 	//		Code Separator
 	//////////////////////////////////////////////////////////////////////////////
 
-	// vehicleSkinBasic(ammoVehicle)
-	vehicleSkinVeyron(ammoVehicle)
+	vehicleSkinBasic(ammoVehicle)
+	// vehicleSkinVeyron(ammoVehicle)
 
 	function vehicleSkinBasic(ammoVehicle){
-		var chassisWidth = 1.8;
-		var chassisHeight = .6;
-		var chassisLength = 4;
-		var massVehicle = 800;
+		var opt = ammoVehicle.parameters
 
-		var wheelAxisPositionBack = -1.8;
-		var wheelHalfTrackBack = 1.15;
-		var wheelAxisHeightBack = .3;
-		var wheelRadiusBack = .45;
-		var wheelWidthBack = .2;
-
-		var wheelAxisPositionFront = 1.55;
-		var wheelHalfTrackFront = 1.15;
-		var wheelAxisHeightFront = .3;
-		var wheelRadiusFront = .45;
-		var wheelWidthFront = .2;
-
-		var geometry = new THREE.BoxGeometry(chassisWidth, chassisHeight, chassisLength, 1, 1, 1);
+		var geometry = new THREE.BoxGeometry(opt.chassisWidth, opt.chassisHeight, opt.chassisLength, 1, 1, 1);
 		var material = new THREE.MeshPhongMaterial()
 		var mesh = new THREE.Mesh(geometry, material);
 	        mesh.castShadow = true
+	        mesh.receiveShadow = true
 
 		var container = ammoVehicle.object3d.getObjectByName('chassis')		
 		container.add(mesh)
 		
-		buildWheel(wheelRadiusFront, wheelWidthFront, 0)
-		buildWheel(wheelRadiusFront, wheelWidthFront, 1)
-		buildWheel(wheelRadiusBack, wheelWidthBack, 2)
-		buildWheel(wheelRadiusBack, wheelWidthBack, 3)
+		buildWheel(opt.wheelRadiusFront, opt.wheelWidthFront, 0)
+		buildWheel(opt.wheelRadiusFront, opt.wheelWidthFront, 1)
+		buildWheel(opt.wheelRadiusBack, opt.wheelWidthBack, 2)
+		buildWheel(opt.wheelRadiusBack, opt.wheelWidthBack, 3)
 		function buildWheel(radius, width, index){
 			var geometry = new THREE.CylinderGeometry(radius, radius, width, 24, 1);
 			geometry.rotateZ(Math.PI / 2);
@@ -178,72 +243,15 @@ startUpTHREEjs(window, {
 		speedometer.innerHTML = (speed < 0 ? '(R) ' : '') + Math.abs(speed).toFixed(1) + ' km/h';                
         })
 
-        //////////////////////////////////////////////////////////////////////////////
-        //                handle keyboard
-        //////////////////////////////////////////////////////////////////////////////
-	var keysActions = {
-		'w':'acceleration',
-		'ArrowUp':'acceleration',
-		'i':'acceleration',
-		's':'braking',
-		'ArrowDown':'braking',
-		'k':'braking',
-		'a':'left',
-		'ArrowLeft':'left',
-		'j':'left',
-		'd':'right',
-		'ArrowRight':'right',
-		'l':'right',
-	};
-                        
-	window.addEventListener( 'keydown', function keydown(event) {
-		if(keysActions[event.key] === undefined ) return
-		ammoVehicle.actions[keysActions[event.key]] = true;
-		event.preventDefault();
-		event.stopPropagation();
-	});
-	window.addEventListener( 'keyup', function keyup(event) {
-		if(keysActions[event.key] === undefined ) return
-		ammoVehicle.actions[keysActions[event.key]] = false;
-		event.preventDefault();
-		event.stopPropagation();
-	});
 
-////////////////////////////////////////////////////////////////////////////////
-//          display ground
-////////////////////////////////////////////////////////////////////////////////
-
-;(function(){
-return
-	var geometry = new THREE.BoxGeometry(60,0.1,180)
-        var material = new THREE.MeshPhongMaterial({
-		map: new THREE.TextureLoader().load("textures/grid.png", function onLoad(texture){
-			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-			texture.repeat.set(geometry.parameters.width,geometry.parameters.depth)
-			texture.anisotropy = renderer.getMaxAnisotropy()
-		})
-	});
-        var mesh = new THREE.Mesh(geometry, material)
-	mesh.position.y = -mesh.geometry.parameters.height/2
-	mesh.receiveShadow = true
-        scene.add(mesh)
-	mesh.name = 'ground'
-
-	var ammoControls = new THREEx.AmmoControls(mesh, {
-		mass: 0
-	})
-	ammoControls.setFriction(0.9)
-	ammoControls.setRestitution(0.9)
-	ammoWorld.add(ammoControls)	
-})()
 
 ////////////////////////////////////////////////////////////////////////////////
 //          display tremplin
 ////////////////////////////////////////////////////////////////////////////////
 
 ;(function(){
-return
-	var geometry = new THREE.BoxGeometry(8,4,10)
+// return
+	var geometry = new THREE.BoxGeometry(8,4,15)
         var material = new THREE.MeshPhongMaterial({
 		map: new THREE.TextureLoader().load("textures/grid.png", function onLoad(texture){
 			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
@@ -252,20 +260,20 @@ return
 		})
 	});
         var mesh = new THREE.Mesh(geometry, material)
-	mesh.position.y = -mesh.geometry.parameters.height/2 +0.5
+	mesh.position.x = -10
+	mesh.position.y = -mesh.geometry.parameters.height/2 +1.5
+	mesh.position.z =  20
 	mesh.receiveShadow = true
         scene.add(mesh)
 	mesh.name = 'tremplin'
         
 	var quaternion = new THREE.Quaternion(0, 0, 0, 1);
-	quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 18);
+	quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 15);
         mesh.quaternion.copy(quaternion)        
 
 	var ammoControls = new THREEx.AmmoControls(mesh, {
 		mass: 0
 	})
-	ammoControls.setFriction(0.9)
-	ammoControls.setRestitution(0.9)
 	ammoWorld.add(ammoControls)	
 })()
 
@@ -274,13 +282,10 @@ return
 //////////////////////////////////////////////////////////////////////////////
 ;(function(){
 // return
-        // var mesh = THREEx.createPoolBall()
-	// var mesh = THREEx.SportBalls.createBasket()
-	// var mesh = THREEx.SportBalls.createBeach()
 	var mesh = THREEx.SportBalls.createFootball()
-        mesh.scale.multiplyScalar(4)
-        // mesh.position.x = -6
-        mesh.position.y = 5
+        mesh.scale.multiplyScalar(2)
+        mesh.position.y =  5
+        mesh.position.z = -20
 
 	mesh.castShadow = true
 	mesh.receiveShadow = true
@@ -348,46 +353,46 @@ function vehicleSkinVeyron(ammoVehicle){
 
 	var mlib = {
 
-	"Orange": 	new THREE.MeshLambertMaterial( { color: 0xff6600, envMap: textureCube, combine: THREE.MixOperation, reflectivity: 0.3 } ),
-	"Blue": 	new THREE.MeshLambertMaterial( { color: 0x001133, envMap: textureCube, combine: THREE.MixOperation, reflectivity: 0.3 } ),
-	"Red": 		new THREE.MeshLambertMaterial( { color: 0x660000, envMap: textureCube, combine: THREE.MixOperation, reflectivity: 0.25 } ),
-	"Black": 	new THREE.MeshLambertMaterial( { color: 0x000000, envMap: textureCube, combine: THREE.MixOperation, reflectivity: 0.15 } ),
-	"White":	new THREE.MeshLambertMaterial( { color: 0xffffff, envMap: textureCube, combine: THREE.MixOperation, reflectivity: 0.25 } ),
+		"Orange": 	new THREE.MeshLambertMaterial( { color: 0xff6600, envMap: textureCube, combine: THREE.MixOperation, reflectivity: 0.3 } ),
+		"Blue": 	new THREE.MeshLambertMaterial( { color: 0x001133, envMap: textureCube, combine: THREE.MixOperation, reflectivity: 0.3 } ),
+		"Red": 		new THREE.MeshLambertMaterial( { color: 0x660000, envMap: textureCube, combine: THREE.MixOperation, reflectivity: 0.25 } ),
+		"Black": 	new THREE.MeshLambertMaterial( { color: 0x000000, envMap: textureCube, combine: THREE.MixOperation, reflectivity: 0.15 } ),
+		"White":	new THREE.MeshLambertMaterial( { color: 0xffffff, envMap: textureCube, combine: THREE.MixOperation, reflectivity: 0.25 } ),
 
-	"Carmine": 	new THREE.MeshPhongMaterial( { color: 0x770000, specular:0xffaaaa, envMap: textureCube, combine: THREE.MultiplyOperation } ),
-	"Gold": 	new THREE.MeshPhongMaterial( { color: 0xaa9944, specular:0xbbaa99, shininess:50, envMap: textureCube, combine: THREE.MultiplyOperation } ),
-	"Bronze":	new THREE.MeshPhongMaterial( { color: 0x150505, specular:0xee6600, shininess:10, envMap: textureCube, combine: THREE.MixOperation, reflectivity: 0.25 } ),
-	"Chrome": 	new THREE.MeshPhongMaterial( { color: 0xffffff, specular:0xffffff, envMap: textureCube, combine: THREE.MultiplyOperation } ),
+		"Carmine": 	new THREE.MeshPhongMaterial( { color: 0x770000, specular:0xffaaaa, envMap: textureCube, combine: THREE.MultiplyOperation } ),
+		"Gold": 	new THREE.MeshPhongMaterial( { color: 0xaa9944, specular:0xbbaa99, shininess:50, envMap: textureCube, combine: THREE.MultiplyOperation } ),
+		"Bronze":	new THREE.MeshPhongMaterial( { color: 0x150505, specular:0xee6600, shininess:10, envMap: textureCube, combine: THREE.MixOperation, reflectivity: 0.25 } ),
+		"Chrome": 	new THREE.MeshPhongMaterial( { color: 0xffffff, specular:0xffffff, envMap: textureCube, combine: THREE.MultiplyOperation } ),
 
-	"Orange metal": new THREE.MeshLambertMaterial( { color: 0xff6600, envMap: textureCube, combine: THREE.MultiplyOperation } ),
-	"Blue metal": 	new THREE.MeshLambertMaterial( { color: 0x001133, envMap: textureCube, combine: THREE.MultiplyOperation } ),
-	"Red metal": 	new THREE.MeshLambertMaterial( { color: 0x770000, envMap: textureCube, combine: THREE.MultiplyOperation } ),
-	"Green metal": 	new THREE.MeshLambertMaterial( { color: 0x007711, envMap: textureCube, combine: THREE.MultiplyOperation } ),
-	"Black metal":	new THREE.MeshLambertMaterial( { color: 0x222222, envMap: textureCube, combine: THREE.MultiplyOperation } ),
+		"Orange metal": new THREE.MeshLambertMaterial( { color: 0xff6600, envMap: textureCube, combine: THREE.MultiplyOperation } ),
+		"Blue metal": 	new THREE.MeshLambertMaterial( { color: 0x001133, envMap: textureCube, combine: THREE.MultiplyOperation } ),
+		"Red metal": 	new THREE.MeshLambertMaterial( { color: 0x770000, envMap: textureCube, combine: THREE.MultiplyOperation } ),
+		"Green metal": 	new THREE.MeshLambertMaterial( { color: 0x007711, envMap: textureCube, combine: THREE.MultiplyOperation } ),
+		"Black metal":	new THREE.MeshLambertMaterial( { color: 0x222222, envMap: textureCube, combine: THREE.MultiplyOperation } ),
 
-	"Pure chrome": 	new THREE.MeshLambertMaterial( { color: 0xffffff, envMap: textureCube } ),
-	"Dark chrome":	new THREE.MeshLambertMaterial( { color: 0x444444, envMap: textureCube } ),
-	"Darker chrome":new THREE.MeshLambertMaterial( { color: 0x222222, envMap: textureCube } ),
+		"Pure chrome": 	new THREE.MeshLambertMaterial( { color: 0xffffff, envMap: textureCube } ),
+		"Dark chrome":	new THREE.MeshLambertMaterial( { color: 0x444444, envMap: textureCube } ),
+		"Darker chrome":new THREE.MeshLambertMaterial( { color: 0x222222, envMap: textureCube } ),
 
-	"Black glass": 	new THREE.MeshLambertMaterial( { color: 0x101016, envMap: textureCube, opacity: 0.975, transparent: true } ),
-	"Dark glass":	new THREE.MeshLambertMaterial( { color: 0x101046, envMap: textureCube, opacity: 0.25, transparent: true } ),
-	"Blue glass":	new THREE.MeshLambertMaterial( { color: 0x668899, envMap: textureCube, opacity: 0.75, transparent: true } ),
-	"Light glass":	new THREE.MeshBasicMaterial( { color: 0x223344, envMap: textureCube, opacity: 0.25, transparent: true, combine: THREE.MixOperation, reflectivity: 0.25 } ),
+		"Black glass": 	new THREE.MeshLambertMaterial( { color: 0x101016, envMap: textureCube, opacity: 0.975, transparent: true } ),
+		"Dark glass":	new THREE.MeshLambertMaterial( { color: 0x101046, envMap: textureCube, opacity: 0.25, transparent: true } ),
+		"Blue glass":	new THREE.MeshLambertMaterial( { color: 0x668899, envMap: textureCube, opacity: 0.75, transparent: true } ),
+		"Light glass":	new THREE.MeshBasicMaterial( { color: 0x223344, envMap: textureCube, opacity: 0.25, transparent: true, combine: THREE.MixOperation, reflectivity: 0.25 } ),
 
-	"Red glass":	new THREE.MeshLambertMaterial( { color: 0xff0000, opacity: 0.75, transparent: true } ),
-	"Yellow glass":	new THREE.MeshLambertMaterial( { color: 0xffffaa, opacity: 0.75, transparent: true } ),
-	"Orange glass":	new THREE.MeshLambertMaterial( { color: 0x995500, opacity: 0.75, transparent: true } ),
+		"Red glass":	new THREE.MeshLambertMaterial( { color: 0xff0000, opacity: 0.75, transparent: true } ),
+		"Yellow glass":	new THREE.MeshLambertMaterial( { color: 0xffffaa, opacity: 0.75, transparent: true } ),
+		"Orange glass":	new THREE.MeshLambertMaterial( { color: 0x995500, opacity: 0.75, transparent: true } ),
 
-	"Orange glass 50":	new THREE.MeshLambertMaterial( { color: 0xffbb00, opacity: 0.5, transparent: true } ),
-	"Red glass 50": 	new THREE.MeshLambertMaterial( { color: 0xff0000, opacity: 0.5, transparent: true } ),
+		"Orange glass 50":	new THREE.MeshLambertMaterial( { color: 0xffbb00, opacity: 0.5, transparent: true } ),
+		"Red glass 50": 	new THREE.MeshLambertMaterial( { color: 0xff0000, opacity: 0.5, transparent: true } ),
 
-	"Fullblack rough":	new THREE.MeshLambertMaterial( { color: 0x000000 } ),
-	"Black rough":		new THREE.MeshLambertMaterial( { color: 0x050505 } ),
-	"Darkgray rough":	new THREE.MeshLambertMaterial( { color: 0x090909 } ),
-	"Red rough":		new THREE.MeshLambertMaterial( { color: 0x330500 } ),
+		"Fullblack rough":	new THREE.MeshLambertMaterial( { color: 0x000000 } ),
+		"Black rough":		new THREE.MeshLambertMaterial( { color: 0x050505 } ),
+		"Darkgray rough":	new THREE.MeshLambertMaterial( { color: 0x090909 } ),
+		"Red rough":		new THREE.MeshLambertMaterial( { color: 0x330500 } ),
 
-	"Darkgray shiny":	new THREE.MeshPhongMaterial( { color: 0x000000, specular: 0x050505 } ),
-	"Gray shiny":		new THREE.MeshPhongMaterial( { color: 0x050505, shininess: 20 } )
+		"Darkgray shiny":	new THREE.MeshPhongMaterial( { color: 0x000000, specular: 0x050505 } ),
+		"Gray shiny":		new THREE.MeshPhongMaterial( { color: 0x050505, shininess: 20 } )
 
 	};
 
@@ -464,39 +469,7 @@ function vehicleSkinVeyron(ammoVehicle){
         });
 };
 
-//////////////////////////////////////////////////////////////////////////////
-//		Gamepad prototype
-//////////////////////////////////////////////////////////////////////////////
 
-;(function(){
-
-	window.addEventListener("gamepadconnected", function(e) {
-	  console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
-	    e.gamepad.index, e.gamepad.id,
-	    e.gamepad.buttons.length, e.gamepad.axes.length);
-	});	
-	
-	window.addEventListener("gamepaddisconnected", function(e) {
-		console.log("Gamepad disconnected from index %d: %s",
-		e.gamepad.index, e.gamepad.id);
-	});
-	
-	onRenderFcts.push(function(){
-		var gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads : []);
-		if (!gamepads) return;
-		
-		var gamepad = gamepads[0];
-return
-		if( gamepad.axes[0] <= -1 )	ammoVehicle.actions.left = true
-		else 				ammoVehicle.actions.left = false
-		if( gamepad.axes[0] >= +1 )	ammoVehicle.actions.right = true
-		else 				ammoVehicle.actions.right = false
-		if( gamepad.axes[1] >= +1 )	ammoVehicle.actions.break = true
-		else 				ammoVehicle.actions.break = false
-		if( gamepad.axes[1] <= -1 )	ammoVehicle.actions.acceleration = true
-		else 				ammoVehicle.actions.acceleration = false
-	})
-})()
 //////////////////////////////////////////////////////////////////////////////
 //		terrain
 //////////////////////////////////////////////////////////////////////////////

@@ -4,142 +4,180 @@ var THREEx = THREEx || {}
 
 THREEx.AmmoVehicle = function(ammoWorld, pos, quat){
 	var _this = this
-	this.actions = {
-		'acceleration' : false,
-		'braking' : false,
-		'left' : false,
-		'right': false,
-	}
+
 	this.object3d = new THREE.Group
-	
-	
 	// Vehicle contants
-	var chassisWidth = 1.8;
-	var chassisHeight = .6;
-	var chassisLength = 4;
-	var massVehicle = 800;
+	
+	_this.parameters = {}
+	var opt = _this.parameters
+	opt.chassisWidth = 1.8;
+	opt.chassisHeight = .6;
+	opt.chassisLength = 4;
+	opt.massVehicle = 800;
 
-	var wheelAxisPositionBack = -1.8;
-	var wheelHalfTrackBack = 1.15;
-	var wheelAxisHeightBack = .3;
-	var wheelRadiusBack = .45;
-	var wheelWidthBack = .2;
+	opt.wheelAxisPositionBack = -1.8;
+	opt.wheelHalfTrackBack = 1.15;
+	opt.wheelAxisHeightBack = .3;
+	opt.wheelRadiusBack = .45;
+	opt.wheelWidthBack = .2;
 
-	var wheelAxisPositionFront = 1.55;
-	var wheelHalfTrackFront = 1.15;
-	var wheelAxisHeightFront = .3;
-	var wheelRadiusFront = .45;
-	var wheelWidthFront = .2;
+	opt.wheelAxisPositionFront = 1.55;
+	opt.wheelHalfTrackFront = 1.15;
+	opt.wheelAxisHeightFront = .3;
+	opt.wheelRadiusFront = .45;
+	opt.wheelWidthFront = .2;
 
-	var friction = 1000;
-	var suspensionStiffness = 20.0;
-	var suspensionDamping = 2.3;
-	var suspensionCompression = 4.4;
-	var suspensionRestLength = 0.6;
-	var rollInfluence = 0.2;
+	opt.friction = 1000;
+	opt.suspensionStiffness = 20.0;
+	opt.suspensionDamping = 2.3;
+	opt.suspensionCompression = 4.4;
+	opt.suspensionRestLength = 0.6;
+	opt.rollInfluence = 0.2;
 
-	var steeringIncrement = .04;
-	var steeringClamp = .5;
-	var maxEngineForce = 2000;
-	var maxBreakingForce = 100;
+	opt.steeringIncrement = .04;
+	opt.steeringClamp = .5;
+	opt.maxEngineForce = 2000;
+	opt.maxBreakingForce = 100;
+	
+	//////////////////////////////////////////////////////////////////////////////
+	//		build THREE.Group
+	//////////////////////////////////////////////////////////////////////////////
+// TODO should that be outside, built before this constructor
+	var chassisMesh = new THREE.Group()
+	chassisMesh.name = 'chassis'
+	_this.object3d.add(chassisMesh);
+	var wheelMeshes = [];
+	for(var i = 0; i < 4; i++){
+		wheelMeshes[i]= new THREE.Group()
+		wheelMeshes[i].name = 'wheel_'+i
+		_this.object3d.add(wheelMeshes[i])
+	}
 
-	// Chassis
-	var geometry = new Ammo.btBoxShape(new Ammo.btVector3(chassisWidth * .5, chassisHeight * .5, chassisLength * .5));
+	//////////////////////////////////////////////////////////////////////////////
+	//		build chassis
+	//////////////////////////////////////////////////////////////////////////////
+	var geometry = new Ammo.btBoxShape(new Ammo.btVector3(opt.chassisWidth * .5, opt.chassisHeight * .5, opt.chassisLength * .5));
 	var transform = new Ammo.btTransform();
 	transform.setIdentity();
 	transform.setOrigin(new Ammo.btVector3(pos.x, pos.y, pos.z));
 	transform.setRotation(new Ammo.btQuaternion(quat.x, quat.y, quat.z, quat.w));
 	var motionState = new Ammo.btDefaultMotionState(transform);
 	var localInertia = new Ammo.btVector3(0, 0, 0);
-	geometry.calculateLocalInertia(massVehicle, localInertia);
-	var body = new Ammo.btRigidBody(new Ammo.btRigidBodyConstructionInfo(massVehicle, motionState, geometry, localInertia));
+	geometry.calculateLocalInertia(opt.massVehicle, localInertia);
+	var body = new Ammo.btRigidBody(new Ammo.btRigidBodyConstructionInfo(opt.massVehicle, motionState, geometry, localInertia));
 
 	var DISABLE_DEACTIVATION = 4;
 	body.setActivationState(DISABLE_DEACTIVATION);
+	
 	ammoWorld.physicsWorld.addRigidBody(body);
 
-	var chassisMesh = createChassisMesh(chassisWidth, chassisHeight, chassisLength);
-
 	// Raycast Vehicle
-	var engineForce = 0;
-	var vehicleSteering = 0;
-	var breakingForce = 0;
 	var tuning = new Ammo.btVehicleTuning();
 	var rayCaster = new Ammo.btDefaultVehicleRaycaster(ammoWorld.physicsWorld);
 	var vehicle = new Ammo.btRaycastVehicle(tuning, body, rayCaster);
-	this.vehicle = vehicle
 	vehicle.setCoordinateSystem(0, 1, 2);
 	ammoWorld.physicsWorld.addAction(vehicle);
 
-	// Wheels
+	this.vehicle = vehicle
+
+	//////////////////////////////////////////////////////////////////////////////
+	//		build wheels physics
+	//////////////////////////////////////////////////////////////////////////////
 	var FRONT_LEFT = 0;
 	var FRONT_RIGHT = 1;
 	var BACK_LEFT = 2;
 	var BACK_RIGHT = 3;
-	var wheelMeshes = [];
-	var wheelDirectionCS0 = new Ammo.btVector3(0, -1, 0);
-	var wheelAxleCS = new Ammo.btVector3(-1, 0, 0);
-
-	addWheel(true, new Ammo.btVector3(wheelHalfTrackFront, wheelAxisHeightFront, wheelAxisPositionFront), wheelRadiusFront, wheelWidthFront, FRONT_LEFT);
-	addWheel(true, new Ammo.btVector3(-wheelHalfTrackFront, wheelAxisHeightFront, wheelAxisPositionFront), wheelRadiusFront, wheelWidthFront, FRONT_RIGHT);
-	addWheel(false, new Ammo.btVector3(-wheelHalfTrackBack, wheelAxisHeightBack, wheelAxisPositionBack), wheelRadiusBack, wheelWidthBack, BACK_LEFT);
-	addWheel(false, new Ammo.btVector3(wheelHalfTrackBack, wheelAxisHeightBack, wheelAxisPositionBack), wheelRadiusBack, wheelWidthBack, BACK_RIGHT);
+	addWheel(true,  new Ammo.btVector3( opt.wheelHalfTrackFront, opt.wheelAxisHeightFront, opt.wheelAxisPositionFront), opt.wheelRadiusFront, opt.wheelWidthFront, FRONT_LEFT);
+	addWheel(true,  new Ammo.btVector3(-opt.wheelHalfTrackFront, opt.wheelAxisHeightFront, opt.wheelAxisPositionFront), opt.wheelRadiusFront, opt.wheelWidthFront, FRONT_RIGHT);
+	addWheel(false, new Ammo.btVector3(-opt.wheelHalfTrackBack , opt.wheelAxisHeightBack , opt.wheelAxisPositionBack) , opt.wheelRadiusBack , opt.wheelWidthBack , BACK_LEFT);
+	addWheel(false, new Ammo.btVector3( opt.wheelHalfTrackBack , opt.wheelAxisHeightBack , opt.wheelAxisPositionBack) , opt.wheelRadiusBack , opt.wheelWidthBack , BACK_RIGHT);
         
-// TODO WHATAHTAA this is a glov
-	onRenderFcts.push(update);
-
-        return
-
-	// Sync keybord actions and physics and graphics
-	function update() {
-
-		var speed = vehicle.getCurrentSpeedKmHour();
-		breakingForce = 0;
-		engineForce = 0;
-
-		if (_this.actions.acceleration) {
-			if (speed < -1)
-				breakingForce = maxBreakingForce;
-			else engineForce = maxEngineForce;
-		}
-		if (_this.actions.braking) {
-			if (speed > 1)
-				breakingForce = maxBreakingForce;
-			else engineForce = -maxEngineForce / 2;
-		}
-		if (_this.actions.left) {
-			if (vehicleSteering < steeringClamp)
-				vehicleSteering += steeringIncrement;
-		}
-		else {
-			if (_this.actions.right) {
-				if (vehicleSteering > -steeringClamp)
-					vehicleSteering -= steeringIncrement;
-			}
-			else {
-				if (vehicleSteering < -steeringIncrement)
-					vehicleSteering += steeringIncrement;
-				else {
-					if (vehicleSteering > steeringIncrement)
-						vehicleSteering -= steeringIncrement;
-					else {
-						vehicleSteering = 0;
-					}
-				}
-			}
-		}
-
-		vehicle.applyEngineForce(engineForce, BACK_LEFT);
-		vehicle.applyEngineForce(engineForce, BACK_RIGHT);
-
+	
+	_this.updateGamepad = function(actions) {
+		
+		var breakingForce = actions.breaking * opt.maxEngineForce
 		vehicle.setBrake(breakingForce / 2, FRONT_LEFT);
 		vehicle.setBrake(breakingForce / 2, FRONT_RIGHT);
 		vehicle.setBrake(breakingForce, BACK_LEFT);
 		vehicle.setBrake(breakingForce, BACK_RIGHT);
 
+		var engineForce = actions.acceleration * opt.maxEngineForce
+		vehicle.applyEngineForce(engineForce, BACK_LEFT);
+		vehicle.applyEngineForce(engineForce, BACK_RIGHT);
+					
+		var vehicleSteering = actions.steering * opt.steeringClamp
 		vehicle.setSteeringValue(vehicleSteering, FRONT_LEFT);
-		vehicle.setSteeringValue(vehicleSteering, FRONT_RIGHT);
+		vehicle.setSteeringValue(vehicleSteering, FRONT_RIGHT); 
 
+		updatePhysics()
+	}
+
+	// states
+	_this.updateKeyboard = (function(){
+		var vehicleSteering = 0;
+		
+		// Sync keybord actions and physics and graphics
+		return function(actions) {
+			// var actions = {
+			// 	'acceleration' : false,	// true if the vehicle is accelerating
+			// 	'braking' : false,	// true if the vehicle is breaking
+			// 	'left' : false,		// true if the vehicle should go left
+			// 	'right': false,		// true if the vehicle should go right
+			// }
+			
+			
+			var speed = vehicle.getCurrentSpeedKmHour();
+			var breakingForce = 0;
+			var engineForce = 0;
+
+			if (actions.acceleration) {
+				if (speed < -1)
+					breakingForce = opt.maxBreakingForce;
+				else engineForce = opt.maxEngineForce;
+			}
+			if (actions.braking) {
+				if (speed > 1)
+					breakingForce = opt.maxBreakingForce;
+				else engineForce = -opt.maxEngineForce / 2;
+			}
+			if (actions.left) {
+				if (vehicleSteering < opt.steeringClamp)
+					vehicleSteering += opt.steeringIncrement;
+			}
+			else {
+				if (actions.right) {
+					if (vehicleSteering > -opt.steeringClamp)
+						vehicleSteering -= opt.steeringIncrement;
+				}
+				else {
+					if (vehicleSteering < -opt.steeringIncrement)
+						vehicleSteering += opt.steeringIncrement;
+					else {
+						if (vehicleSteering > opt.steeringIncrement)
+							vehicleSteering -= opt.steeringIncrement;
+						else {
+							vehicleSteering = 0;
+						}
+					}
+				}
+			}
+
+			vehicle.applyEngineForce(engineForce, BACK_LEFT);
+			vehicle.applyEngineForce(engineForce, BACK_RIGHT);
+			
+			vehicle.setBrake(breakingForce / 2, FRONT_LEFT);
+			vehicle.setBrake(breakingForce / 2, FRONT_RIGHT);
+			vehicle.setBrake(breakingForce, BACK_LEFT);
+			vehicle.setBrake(breakingForce, BACK_RIGHT);
+			
+			vehicle.setSteeringValue(vehicleSteering, FRONT_LEFT);
+			vehicle.setSteeringValue(vehicleSteering, FRONT_RIGHT);
+
+			updatePhysics()
+		}
+	})()
+	
+	function updatePhysics(){
 		var nWheels = vehicle.getNumWheels();
 		for (var i = 0; i < nWheels; i++) {
 			vehicle.updateWheelTransform(i, true);
@@ -154,39 +192,34 @@ THREEx.AmmoVehicle = function(ammoWorld, pos, quat){
 		var position = transform.getOrigin();
 		var quaternion = transform.getRotation();
 		chassisMesh.position.set(position.x(), position.y(), position.z());
-		chassisMesh.quaternion.set(quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());
+		chassisMesh.quaternion.set(quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());		
 	}
 
-	function addWheel(isFront, pos, radius, width, index) {
+	function addWheel(isFront, position, radius, width, index) {
+		var wheelDirectionCS0 = new Ammo.btVector3(0, -1, 0);
+		var wheelAxleCS = new Ammo.btVector3(-1, 0, 0);
+
 		var wheelInfo = vehicle.addWheel(
-				pos,
+				position,
 				wheelDirectionCS0,
 				wheelAxleCS,
-				suspensionRestLength,
+				opt.suspensionRestLength,
 				radius,
 				tuning,
 				isFront);
 
-		wheelInfo.set_m_suspensionStiffness(suspensionStiffness);
-		wheelInfo.set_m_wheelsDampingRelaxation(suspensionDamping);
-		wheelInfo.set_m_wheelsDampingCompression(suspensionCompression);
+		wheelInfo.set_m_suspensionStiffness(opt.suspensionStiffness);
+		wheelInfo.set_m_wheelsDampingRelaxation(opt.suspensionDamping);
+		wheelInfo.set_m_wheelsDampingCompression(opt.suspensionCompression);
                 
-		wheelInfo.set_m_frictionSlip(friction);
-		wheelInfo.set_m_rollInfluence(rollInfluence);
+		wheelInfo.set_m_frictionSlip(opt.friction);
+		wheelInfo.set_m_rollInfluence(opt.rollInfluence);
 
-		wheelMeshes[index] = createWheelMesh(radius, width, index);
-	}
-	function createWheelMesh(radius, width, index) {
-		var wheelMesh = new THREE.Group()
-		wheelMesh.name = 'wheel_'+index
-		_this.object3d.add(wheelMesh)
-		return wheelMesh
-	}
 
-	function createChassisMesh(width, height, depth) {
-		var mesh = new THREE.Group()
-		mesh.name = 'chassis'
-		_this.object3d.add(mesh);
-		return mesh;
-	}	
+		// var wheelMesh = new THREE.Group()
+		// wheelMesh.name = 'wheel_'+index
+		// wheelMeshes[index] = wheelMesh
+		// 
+		// _this.object3d.add(wheelMesh)
+	}
 }

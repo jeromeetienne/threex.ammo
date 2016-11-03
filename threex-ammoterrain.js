@@ -4,13 +4,6 @@ var THREEx = THREEx || {}
 
 THREEx.AmmoTerrain = function( terrainWidth, terrainDepth, terrainMinHeight, terrainMaxHeight, terrain3dWidth, terrain3dDepth){
 	var _this = this
-	/**
-	 * TODO
-	 * - inherit from ammocontrols
-	 * - keep refactoring
-	 *   initGraphics
-	 *   initPhysics
-	 */
 	
 	var heightData = generateHeightRocket( terrainWidth, terrainDepth, terrainMinHeight, terrainMaxHeight );
 	//////////////////////////////////////////////////////////////////////////////
@@ -161,8 +154,7 @@ THREEx.AmmoTerrain = function( terrainWidth, terrainDepth, terrainMinHeight, ter
 		var radiusX = 24*2
 		var radiusZ = 24*2
 		var radiusY = radiusX/4
-		console.log('radiusX', radiusX)
-                
+		
                 for(var index = 0, z = 0; z < depth; z++ ) {
                         for ( var x = 0; x < width; x++ ) {
 				var height = minHeight
