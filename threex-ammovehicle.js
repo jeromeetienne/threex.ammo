@@ -98,7 +98,15 @@ this.chassisBody = chassisBody
 		// 	'steering' : 0,		// between [-1,1] -1 means left, +1 means right
 		// 	'breaking' : 0,		// between [0,1]. 0 means no breaking, +1 means full breaking
 		// 	'acceleration' : 0,	// between [0,1]. 0 means no acceleration, +1 means full acceleration
+		// 	'jump': false,		// true if the vehicle should go jump 	
 		// }
+
+		// honor.jump
+		if( actions.jump ){
+			actions.jump = false
+			var impulse = new Ammo.btVector3(0,opt.massVehicle*5,0)
+			chassisBody.applyCentralImpulse(impulse)
+		}
 
 		var breakingForce = actions.breaking * opt.maxEngineForce
 		vehicle.setBrake(breakingForce / 2, FRONT_LEFT);
@@ -168,6 +176,7 @@ this.chassisBody = chassisBody
 				}
 			}
 			
+			// honor.jump
 			if( actions.jump ){
 				actions.jump = false
 				var impulse = new Ammo.btVector3(0,opt.massVehicle*5,0)

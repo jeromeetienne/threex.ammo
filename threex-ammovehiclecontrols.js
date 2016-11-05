@@ -4,7 +4,7 @@ var THREEx = THREEx || {}
 THREEx.AmmoVehicleControls = function(object3d){
 	this.object3d = object3d
 	
-	this.offsetCamera = new THREE.Vector3(0,5,-10).setLength(20)
+	this.offsetCamera = new THREE.Vector3(0,2,-6).setLength(10)
 	this.lookatCamera = new THREE.Vector3(0,0,+4)
 	
 	this.tweenOffset = 0.1

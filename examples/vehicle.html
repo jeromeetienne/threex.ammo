@@ -111,11 +111,13 @@ startUpTHREEjs(window, {
 	var quaternion = new THREE.Quaternion(0, 0, 0, 1).setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 	var ammoVehicle = new THREEx.AmmoVehicle(ammoWorld.physicsWorld, position, quaternion);
 	onRenderFcts.push(function(){
-		ammoVehicle.updateKeyboard(vehicleKeyboardActions)
-		// ammoVehicle.updateGamepad(vehicleGamepadActions)
+		if( isGamepadConnected === true ){
+			ammoVehicle.updateGamepad(vehicleGamepadActions)
+		}else{
+			ammoVehicle.updateKeyboard(vehicleKeyboardActions)
+		}
 	})
         scene.add(ammoVehicle.object3d)
-window.ammoVehicle = ammoVehicle
 
         //////////////////////////////////////////////////////////////////////////////
         //                handle keyboard
@@ -125,6 +127,7 @@ window.ammoVehicle = ammoVehicle
 		'braking' : false,
 		'left' : false,
 		'right': false,
+		'jump' : false,
 	}
 	
 	var keysActions = {
@@ -153,39 +156,65 @@ window.ammoVehicle = ammoVehicle
 	//		Gamepad prototype
 	//////////////////////////////////////////////////////////////////////////////
 
+        if (navigator.getGamepads) {
+        //     gamepads = navigator.getGamepads();
+        } else if (navigator.webkitGetGamepads) {
+            navigator.getGamepads = navigator.webkitGetGamepads;
+        } else {
+            navigator.getGamepads = function(){return []};
+        }
+	
 	var vehicleGamepadActions = {
 		'acceleration' : 0,
 		'steering' : 0,
 		'breaking' : 0,
+		'jump' : false,
 	}
-	
+	// isGamepadConnected = true and use it in the loop to know how to update the vehicle
+	var isGamepadConnected = false
+	// if ( navigator.getGamepads()[0] !== undefined ) isGamepadConnected = true;
+
 	window.addEventListener("gamepadconnected", function(event) {
 		console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.", event.gamepad.index, event.gamepad.id,
 			event.gamepad.buttons.length, event.gamepad.axes.length);
+		// isGamepadConnected = true
 	});	
 	
 	window.addEventListener("gamepaddisconnected", function(e) {
 		consolevent.log("Gamepad disconnected from index %d: %s", event.gamepad.index, event.gamepad.id);
+		// isGamepadConnected = false
 	});
 	
-	onRenderFcts.push(function(){
-		var gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads : []);
-		if (!gamepads || gamepads.length === 0 ) return;
-		
-		var gamepad = gamepads[0];
-		if( gamepad === undefined ) 	return
-		// for a xbox 360 wired..
-		vehicleGamepadActions['steering'] = -gamepad.axes[0]
-		vehicleGamepadActions['acceleration'] = gamepad.buttons[7].value
-		vehicleGamepadActions['breaking'] = gamepad.buttons[6].value
-	})
+	onRenderFcts.push((function(){
+		var button1WasPressed = false
+		return function(){
+			if ( navigator.getGamepads()[0] === undefined ) return;
+			
+			var gamepads = navigator.getGamepads();
+			var gamepad = gamepads[0];
+			if( gamepad === undefined ) 	return
+			// for a xbox 360 wired..
+			vehicleGamepadActions['steering'] = -gamepad.axes[0]
+			vehicleGamepadActions['acceleration'] = gamepad.buttons[7].value
+			vehicleGamepadActions['breaking'] = gamepad.buttons[6].value
+			
+			// handle button1 with no repeat
+			if( button1WasPressed === false && gamepad.buttons[1].pressed === true ){
+				vehicleGamepadActions['jump'] = true
+				button1WasPressed = true
+			}
+			if( button1WasPressed === true && gamepad.buttons[1].pressed === false ){
+				button1WasPressed = false
+			}
+		}
+	})())
 
 	//////////////////////////////////////////////////////////////////////////////
 	//		Code Separator
 	//////////////////////////////////////////////////////////////////////////////
 
-	vehicleSkinBasic(ammoVehicle)
-	// vehicleSkinVeyron(ammoVehicle)
+	// vehicleSkinBasic(ammoVehicle)
+	vehicleSkinVeyron(ammoVehicle)
 
 	function vehicleSkinBasic(ammoVehicle){
 		var opt = ammoVehicle.parameters
