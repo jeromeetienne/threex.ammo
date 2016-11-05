@@ -102,6 +102,7 @@ startUpTHREEjs(window, {
 })()
 
 
+	
         //////////////////////////////////////////////////////////////////////////////
         //                add vehicule
         //////////////////////////////////////////////////////////////////////////////
@@ -118,6 +119,26 @@ startUpTHREEjs(window, {
 		}
 	})
         scene.add(ammoVehicle.object3d)
+	
+	
+	// Enable to basic look
+	// var meshes = buildVehicleSkinBasic(ammoVehicle.parameters)
+	// applyMeshesToVehicle(ammoVehicle, meshes)
+
+	// Enable to veyron look
+	buildVehicleSkinVeyron(ammoVehicle.parameters, function onReady(meshes){
+		applyMeshesToVehicle(ammoVehicle, meshes)
+	})
+
+
+	function applyMeshesToVehicle(ammoVehicle, meshes){
+		var container = ammoVehicle.object3d.getObjectByName('chassis')
+		container.add(meshes.chassis)
+		for(var i = 0; i < 4; i++){
+			var container = ammoVehicle.object3d.getObjectByName('wheel_'+i)
+			container.add(meshes.wheels[i])
+		}		
+	}
 
         //////////////////////////////////////////////////////////////////////////////
         //                handle keyboard
@@ -209,44 +230,6 @@ startUpTHREEjs(window, {
 		}
 	})())
 
-	//////////////////////////////////////////////////////////////////////////////
-	//		Code Separator
-	//////////////////////////////////////////////////////////////////////////////
-
-	// vehicleSkinBasic(ammoVehicle)
-	vehicleSkinVeyron(ammoVehicle)
-
-	function vehicleSkinBasic(ammoVehicle){
-		var opt = ammoVehicle.parameters
-
-		var geometry = new THREE.BoxGeometry(opt.chassisWidth, opt.chassisHeight, opt.chassisLength, 1, 1, 1);
-		var material = new THREE.MeshPhongMaterial()
-		var mesh = new THREE.Mesh(geometry, material);
-	        mesh.castShadow = true
-	        mesh.receiveShadow = true
-
-		var container = ammoVehicle.object3d.getObjectByName('chassis')		
-		container.add(mesh)
-		
-		buildWheel(opt.wheelRadiusFront, opt.wheelWidthFront, 0)
-		buildWheel(opt.wheelRadiusFront, opt.wheelWidthFront, 1)
-		buildWheel(opt.wheelRadiusBack, opt.wheelWidthBack, 2)
-		buildWheel(opt.wheelRadiusBack, opt.wheelWidthBack, 3)
-		function buildWheel(radius, width, index){
-			var geometry = new THREE.CylinderGeometry(radius, radius, width, 24, 1);
-			geometry.rotateZ(Math.PI / 2);
-			var material = new THREE.MeshPhongMaterial()
-			var wheelMesh = new THREE.Mesh(geometry, material);
-		        wheelMesh.castShadow = true
-			
-		        var geometry = new THREE.BoxGeometry(width * 1.5, radius * 1.75, radius*.25, 1, 1, 1)
-			var material = new THREE.MeshPhongMaterial()
-		        var boxMesh  = new THREE.Mesh(geometry, material);
-			wheelMesh.add(boxMesh);
-			var container = ammoVehicle.object3d.getObjectByName('wheel_'+index)
-			container.add(wheelMesh)		
-		}		
-	}
         //////////////////////////////////////////////////////////////////////////////
         //                update speedometer
         //////////////////////////////////////////////////////////////////////////////
@@ -359,8 +342,55 @@ return
 //////////////////////////////////////////////////////////////////////////////
 //                Code Separator
 //////////////////////////////////////////////////////////////////////////////
-        
-function vehicleSkinVeyron(ammoVehicle){
+function buildVehicleSkinBasic(opt){
+	var meshes = {
+		chassis : null,
+		wheels : []
+	}
+
+	// build chassis
+	var geometry = new THREE.BoxGeometry(opt.chassisWidth, opt.chassisHeight, opt.chassisLength, 1, 1, 1);
+	var material = new THREE.MeshPhongMaterial()
+	var mesh = new THREE.Mesh(geometry, material);
+        mesh.castShadow = true
+        mesh.receiveShadow = true
+	meshes.chassis = mesh
+
+	// build wheels
+	meshes.wheels.push( buildWheel(opt.wheelRadiusFront, opt.wheelWidthFront, 0) )
+	meshes.wheels.push( buildWheel(opt.wheelRadiusFront, opt.wheelWidthFront, 1) )
+	meshes.wheels.push( buildWheel(opt.wheelRadiusBack, opt.wheelWidthBack, 2) )
+	meshes.wheels.push( buildWheel(opt.wheelRadiusBack, opt.wheelWidthBack, 3) )
+	
+	return meshes;
+	
+
+	function buildWheel(radius, width, index){
+		var geometry = new THREE.CylinderGeometry(radius, radius, width, 24, 1);
+		geometry.rotateZ(Math.PI / 2);
+		var material = new THREE.MeshPhongMaterial()
+		var mesh = new THREE.Mesh(geometry, material);
+	        mesh.castShadow = true
+		
+	        var geometry = new THREE.BoxGeometry(width * 1.5, radius * 1.75, radius*.25, 1, 1, 1)
+		var material = new THREE.MeshPhongMaterial()
+	        var boxMesh  = new THREE.Mesh(geometry, material);
+		mesh.add(boxMesh);
+
+		return mesh
+	}		
+}
+
+//////////////////////////////////////////////////////////////////////////////
+//                Code Separator
+//////////////////////////////////////////////////////////////////////////////
+	        
+function buildVehicleSkinVeyron(opt, onReady){
+	var meshes = {
+		chassis : null,
+		wheels : []
+	}
+
 	var textureCube = new THREE.CubeTextureLoader()
 		.setPath( 'textures/cube/Bridge2/')
 		.load( [ 'posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg' ] );
@@ -444,8 +474,8 @@ function vehicleSkinVeyron(ammoVehicle){
         		bodyMesh.position.y = 0.25
 			bodyMesh.castShadow = true
 			// bodyMesh.receiveShadow = true
-			var container = ammoVehicle.object3d.getObjectByName('chassis')
-			container.add(bodyMesh)
+
+			meshes.chassis = bodyMesh
 	
                         var wheelMaterial = new THREE.MultiMaterial()
         		wheelMaterial.materials[ 0 ] = new THREE.MeshLambertMaterial({
@@ -476,9 +506,10 @@ function vehicleSkinVeyron(ammoVehicle){
         			if(i==0 || i==3){
         				wheelmesh.quaternion.setFromAxisAngle(new THREE.Vector3(0,0,1),Math.PI);				
         			}
-				var container = ammoVehicle.object3d.getObjectByName('wheel_'+i)
-				container.add(wheelmesh)
+				meshes.wheels.push(wheelmesh)
         		}
+			
+			onReady(meshes)
                 
         	});
         });
