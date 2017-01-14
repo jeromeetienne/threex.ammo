@@ -1,1 +1,1 @@
-a-frame components for threex.minecraft.js
+a-frame components for threex.ammo.js

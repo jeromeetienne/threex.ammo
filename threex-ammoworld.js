@@ -121,3 +121,7 @@ THREEx.AmmoWorld.prototype._updateCollisions = function(){
                 return ammoControls
         }        
 }
+
+THREEx.AmmoWorld.prototype.setGravity = function(x,y,z){
+        this.physicsWorld.setGravity( new Ammo.btVector3( x, y, z ) );        
+}

@@ -1,3 +1,1 @@
-# terrain clean up
-- important to make it reusable
-- make this class hinerit ammo ?
+- put ammo.js as /vendor/ammo.js

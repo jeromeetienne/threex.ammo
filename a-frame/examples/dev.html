@@ -5,8 +5,8 @@
 <script src="../../threex-ammocontrols.js"></script>
 <script src="../aframe-ammo.js"></script>
 
-<body><a-scene ammo-world>
-	<a-box ammo-controls='friction: 0.8; restitution: 1.2; linearVelocity: 0 4 0; angularVelocity: 0 90 90'   position="0 2 -5" radius="1.25" color="#EF2D5E"></a-box>
+<body><a-scene ammo-world='gravity: 0 0 0'>
+	<a-box ammo-controls='mass: 2;friction: 0.8; restitution: 1.2; linearVelocity: 0 4 0; angularVelocity: 0 90 90'   position="0 2 -5" radius="1.25" color="#EF2D5E"></a-box>
 	<!-- <a-cylinder ammo-controls='linearVelocity: -10 0 0;'  position="1 0.75 -3" radius="0.5" height="1.5" color="#FFC65D"></a-cylinder> -->
 	<a-box ammo-controls='mass: 0' position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
 </a-scene></body>

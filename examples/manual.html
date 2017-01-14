@@ -192,8 +192,7 @@ return
 			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
 			texture.repeat.set(geometry.parameters.width,geometry.parameters.height)
 			texture.anisotropy = renderer.getMaxAnisotropy()
-		}),
-		
+		}),	
 	});
 	var model = new THREE.Mesh(geometry, material)
 	model.receiveShadow = true

@@ -1,0 +1,15 @@
+<html>
+<head>
+	<script src="https://aframe.io/releases/0.4.0/aframe.min.js"></script>
+	<script src="../build/aframe-ammo.min.js"></script>
+</head>
+<body>
+	<a-scene ammo-world>
+		<!-- a moving box -->
+		<!-- <a-box ammo-controls='linearVelocity: 0 4 0; angularVelocity: 0 90 90'   position="0 2 -5" radius="1.25" color="#EF2D5E"></a-box> -->
+		
+		<!-- a plane with a mass of 0 as it is not moving -->
+		<a-plane ammo-controls='mass: 0' position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
+	</a-scene>
+</body>
+</html>
