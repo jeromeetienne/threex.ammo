@@ -10,13 +10,12 @@ AFRAME.registerSystem('ammo-world', {
 		}
 	},
 	init: function () {
-console.log('init system', this)
 		// debugger
 		var ammoWorld = new THREEx.AmmoWorld()
 		// ammoWorld.collisionEnabled = true
 		this.ammoWorld = ammoWorld
 
-		// NOTE: a-frame never call .update()
+		// NOTE: a-frame never call .update(), while it does for components
 		this.update()
 	},
 	tick: function (now, delta) {
@@ -36,7 +35,7 @@ AFRAME.registerComponent('ammo-controls', {
 		},
 		restitution : {
 			type: 'number',
-			default: 0.9,
+			default: 0.5,
 		},
 		friction : {
 			type: 'number',
