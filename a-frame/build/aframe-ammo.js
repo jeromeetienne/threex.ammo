@@ -767,247 +767,92 @@ THREEx.AmmoWorld.prototype._updateCollisions = function(){
                 return ammoControls
         }        
 }
+
+THREEx.AmmoWorld.prototype.setGravity = function(x,y,z){
+        this.physicsWorld.setGravity( new Ammo.btVector3( x, y, z ) );        
+}
 //////////////////////////////////////////////////////////////////////////////
 //		Code Separator
 //////////////////////////////////////////////////////////////////////////////
 
 AFRAME.registerSystem('ammo-world', {
+	schema: {
+		gravity : {
+			type: 'vec3',
+			default: '0 -9.81 0',
+		}
+	},
 	init: function () {
-                var ammoWorld = new THREEx.AmmoWorld()
+		// debugger
+		var ammoWorld = new THREEx.AmmoWorld()
 		// ammoWorld.collisionEnabled = true
 		this.ammoWorld = ammoWorld
+
+		// NOTE: a-frame never call .update(), while it does for components
+		this.update()
 	},
 	tick: function (now, delta) {
-                this.ammoWorld.update()
+		this.ammoWorld.update()
 	},
+	update: function(){
+		var vector3 = this.data.gravity
+		this.ammoWorld.setGravity(vector3.x, vector3.y, vector3.z)
+	}
 });
 
 AFRAME.registerComponent('ammo-controls', {
-        dependencies: ['ammo-world'],
 	schema: {
-                mass : {
-                        type: 'number',
-                        default: NaN,
-                },
-                restitution : {
-                        type: 'number',
-                        default: 0.9,
-                },
-                friction : {
-                        type: 'number',
-                        default: 0.99,
-                },
-                angularVelocity : {
-                        type: 'vec3',
-                        default: "0 0 0",
-                },
-                linearVelocity : {
-                        type: 'vec3',
-                        default: "0 0 0",
-                },
+		mass : {
+			type: 'number',
+			default: NaN,
+		},
+		restitution : {
+			type: 'number',
+			default: 0.5,
+		},
+		friction : {
+			type: 'number',
+			default: 0.99,
+		},
+		angularVelocity : {
+			type: 'vec3',
+			default: "0 0 0",
+		},
+		linearVelocity : {
+			type: 'vec3',
+			default: "0 0 0",
+		},
 	},
 	init: function () {
-                console.log('data', this.data)
-                // build ammo-controls options
-                var options = {}
-                if( isNaN(this.data.mass) === false ){
-                        options.mass = this.data.mass
-                }
-                // create the ammo-controls
-                var ammoControls = new THREEx.AmmoControls(this.el.object3D, options)
+		// debugger
+		// build ammo-controls options
+		var options = {}
+		if( isNaN(this.data.mass) === false ){
+			options.mass = this.data.mass
+		}
+		// create the ammo-controls
+		var ammoControls = new THREEx.AmmoControls(this.el.object3D, options)
 		this.ammoControls = ammoControls
-                
-                // add this controls to ammoWorld
-                var ammoWorld = this.el.sceneEl.systems['ammo-world'].ammoWorld
-                ammoWorld.add(ammoControls)
-
-                var vector3 = this.data.linearVelocity
-                console.log('linearVelocity', vector3)
-                ammoControls.setLinearVelocity(vector3.x, vector3.y, vector3.z)
-
-                var vector3 = this.data.angularVelocity
-                ammoControls.setAngularVelocity(THREE.Math.degToRad(vector3.x), THREE.Math.degToRad(vector3.y), THREE.Math.degToRad(vector3.z))
-	},
-        update: function(){
-                this.ammoControls.setRestitution(this.data.restitution)
-                this.ammoControls.setFriction(this.data.friction)
-        }
-});
-//////////////////////////////////////////////////////////////////////////////
-//                Code Separator
-//////////////////////////////////////////////////////////////////////////////
-
-AFRAME.registerPrimitive('a-minecraft', AFRAME.utils.extendDeep({}, AFRAME.primitives.getMeshMixin(), {
-        defaultComponents: {
-                minecraft: {},
-                'minecraft-head-anim': 'still',
-                'minecraft-body-anim': 'stand',
-                'minecraft-nickname': 'John',
-                'minecraft-bubble': '',
-                'minecraft-controls': {},
-        },
-        mappings: {
-                'head-anim': 'minecraft-head-anim',
-                'body-anim': 'minecraft-body-anim',
-                'nickname': 'minecraft-nickname',
-                'bubble': 'minecraft-bubble',
-                'controls': 'minecraft-controls',
-        }
-}));
-
-//////////////////////////////////////////////////////////////////////////////
-//		Code Separator
-//////////////////////////////////////////////////////////////////////////////
-
-AFRAME.registerComponent('minecraft', {
-	schema: {
-		skinUrl: {
-			type: 'string',
-			default : ''
-		},
-		wellKnownSkin: {
-			type: 'string',
-			default : ''
-		},
-		heightMeter : {
-			default : 1.6
-		}
-	},
-	init: function () {
-		var character	= new THREEx.MinecraftChar()
-		this.character = character
-
-		this.el.object3D.add( character.root )
-		// this.el.setObject3D('superRoot', character.root);
-	},
-	update: function () {
-                if( Object.keys(this.data).length === 0 )       return
-		var character = this.character
-		character.root.scale.set(1,1,1).multiplyScalar(this.data.heightMeter)
 		
-		if( this.data.skinUrl ){
-			character.loadSkin(this.data.skinUrl)
-		}else if( this.data.wellKnownSkin ){
-			character.loadWellKnownSkin(this.data.wellKnownSkin)
-		}
+		// add this controls to ammoWorld
+		var ammoWorld = this.el.sceneEl.systems['ammo-world'].ammoWorld
+		ammoWorld.add(ammoControls)
+		
+		var vector3 = this.data.linearVelocity
+		console.log('linearVelocity', vector3)
+		ammoControls.setLinearVelocity(vector3.x, vector3.y, vector3.z)
+		
+		var vector3 = this.data.angularVelocity
+		ammoControls.setAngularVelocity(THREE.Math.degToRad(vector3.x), THREE.Math.degToRad(vector3.y), THREE.Math.degToRad(vector3.z))
 	},
-});
-
-
-//////////////////////////////////////////////////////////////////////////////
-//		Code Separator
-//////////////////////////////////////////////////////////////////////////////
-AFRAME.registerComponent('minecraft-head-anim', {
-	schema: {
-		type: 'string',
-		default : 'yes',
+	tick: function(){
+		// stay active all the time
+		// FIXME this seems the wrong way to do it
+		// provide an options
+		this.ammoControls.body.activate()
 	},
-	init: function () {
-		var character = this.el.components.minecraft.character
-		this.headAnims	= new THREEx.MinecraftCharHeadAnimations(character);
-	},
-	tick : function(now, delta){
-		this.headAnims.update(delta/1000,now/1000)
-	},
-	update: function () {
-                if( Object.keys(this.data).length === 0 )       return
-		console.assert( this.headAnims.names().indexOf(this.data) !== -1 )
-		this.headAnims.start(this.data);			
-	},
-});
-
-//////////////////////////////////////////////////////////////////////////////
-//		Code Separator
-//////////////////////////////////////////////////////////////////////////////
-
-AFRAME.registerComponent('minecraft-body-anim', {
-	schema: {
-		type: 'string',
-		default : 'wave',
-	},
-	init: function () {
-		var character = this.el.components.minecraft.character
-		this.bodyAnims	= new THREEx.MinecraftCharBodyAnimations(character);
-	},
-	tick : function(now, delta){
-                // force the animation according to controls
-                var minecraftControls = this.el.components['minecraft-controls']
-                if( minecraftControls ){
-                        var input = minecraftControls.controls.input
-                        if( input.up || input.down ){
-                                this.bodyAnims.start('run');			
-                        }else if( input.strafeLeft || input.strafeRight ){
-                                this.bodyAnims.start('strafe');
-                        }else {
-                                this.bodyAnims.start('stand');			
-                        }        
-                }
-                // update the animation
-		this.bodyAnims.update(delta/1000,now/1000)
-	},
-	update: function () {
-                if( Object.keys(this.data).length === 0 )       return
-		console.assert( this.bodyAnims.names().indexOf(this.data) !== -1 )
-		this.bodyAnims.start(this.data);
-	},
-});
-
-
-//////////////////////////////////////////////////////////////////////////////
-//		Code Separator
-//////////////////////////////////////////////////////////////////////////////
-
-AFRAME.registerComponent('minecraft-nickname', {
-	schema: {
-		type: 'string',
-		default : 'Joe',
-	},
-	init: function () {
-		var character = this.el.components.minecraft.character
-		this.nickName	= new THREEx.MinecraftNickname(character);
-	},
-	update: function () {
-                if( Object.keys(this.data).length === 0 )       return
-		this.nickName.set(this.data);
-	},
-});
-
-//////////////////////////////////////////////////////////////////////////////
-//		Code Separator
-//////////////////////////////////////////////////////////////////////////////
-
-AFRAME.registerComponent('minecraft-bubble', {
-	schema: {
-		type: 'string',
-		default : 'Hello world.',
-	},
-	init: function () {
-		var character = this.el.components.minecraft.character
-		this.bubble	= new THREEx.MinecraftBubble(character);
-	},
-        update: function () {
-                if( Object.keys(this.data).length === 0 )       return
-		this.bubble.set(this.data);
-	},
-        tick : function(now, delta){
-                this.bubble.update(delta/1000,now/1000)
-	},
-});
-
-
-//////////////////////////////////////////////////////////////////////////////
-//		Code Separator
-//////////////////////////////////////////////////////////////////////////////
-
-AFRAME.registerComponent('minecraft-controls', {
-	schema: {
-	},
-	init: function () {
-		var character = this.el.components.minecraft.character
-		this.controls	= new THREEx.MinecraftControls(character)
-                THREEx.MinecraftControls.setKeyboardInput(this.controls, ['wasd', 'arrows', 'ijkl'])
-	},
-        tick : function(now, delta){
-                this.controls.update(delta/1000,now/1000)
-	},
+	update: function(){
+		this.ammoControls.setRestitution(this.data.restitution)
+		this.ammoControls.setFriction(this.data.friction)
+	}
 });
