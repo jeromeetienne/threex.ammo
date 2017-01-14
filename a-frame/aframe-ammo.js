@@ -10,18 +10,20 @@ AFRAME.registerSystem('ammo-world', {
 		}
 	},
 	init: function () {
+console.log('init system', this)
 		// debugger
 		var ammoWorld = new THREEx.AmmoWorld()
 		// ammoWorld.collisionEnabled = true
 		this.ammoWorld = ammoWorld
+
+		// NOTE: a-frame never call .update()
+		this.update()
 	},
 	tick: function (now, delta) {
 		this.ammoWorld.update()
 	},
 	update: function(){
 		var vector3 = this.data.gravity
-		debugger
-		console.log('dd')
 		this.ammoWorld.setGravity(vector3.x, vector3.y, vector3.z)
 	}
 });
@@ -70,6 +72,12 @@ AFRAME.registerComponent('ammo-controls', {
 		
 		var vector3 = this.data.angularVelocity
 		ammoControls.setAngularVelocity(THREE.Math.degToRad(vector3.x), THREE.Math.degToRad(vector3.y), THREE.Math.degToRad(vector3.z))
+	},
+	tick: function(){
+		// stay active all the time
+		// FIXME this seems the wrong way to do it
+		// provide an options
+		this.ammoControls.body.activate()
 	},
 	update: function(){
 		this.ammoControls.setRestitution(this.data.restitution)
