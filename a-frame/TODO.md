@@ -1,4 +1,6 @@
 - fix issue with initial rotation/position/scale
+- find a nice demo for it
+- issue in the dominoes demo, the ball no more touch the ground
 
 - DONE put ammo.js as /vendor/ammo.js
   - this is a dependancy which should not live in three.js
