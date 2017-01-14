@@ -117,7 +117,7 @@ THREEx.AmmoControls._guessGeometryFromObject3d = function(object3d){
         var parameters = null
         var type = 'unknown'
 
-        if( object3d.geometry instanceof THREE.BoxGeometry ){
+        if( object3d.geometry instanceof THREE.BoxGeometry || object3d.geometry instanceof THREE.SphereGeometry || object3d.geometry instanceof THREE.CylinderGeometry ){
                 parameters = object3d.geometry.parameters
                 type = object3d.geometry.type
         }
