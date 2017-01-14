@@ -57,7 +57,7 @@ Object.assign( THREEx.AmmoControls.prototype, THREE.EventDispatcher.prototype )
 ////////////////////////////////////////////////////////////////////////////////
 
 THREEx.AmmoControls.guessMassFromObject3d = function(object3d){
-        var p = object3d.geometry.parameters
+        var p = object3d.geometry ? object3d.geometry.parameters : null
         var s = object3d.scale
         var mass
         if( object3d.geometry instanceof THREE.BoxGeometry ){
@@ -73,7 +73,7 @@ THREEx.AmmoControls.guessMassFromObject3d = function(object3d){
                         + p.radiusTop*p.radiusTop * s.x*s.x)
         }else{
                 // console.assert('unknown geometry type', object3d.geometry)
-                var box3 = new THREE.Box3().setFromObject(this.object3d)
+                var box3 = new THREE.Box3().setFromObject(object3d)
                 var size = box3.getSize()
                 mass = size.x*s.x * size.y*s.y * size.z*s.z
         }        
@@ -81,7 +81,7 @@ THREEx.AmmoControls.guessMassFromObject3d = function(object3d){
 }
 
 THREEx.AmmoControls.guessShapeFromObject3d = function(object3d){
-        var p = object3d.geometry.parameters
+        var p = object3d.geometry ? object3d.geometry.parameters : null
         var s = object3d.scale
 
         if( object3d.geometry instanceof THREE.BoxGeometry ){
@@ -100,7 +100,7 @@ THREEx.AmmoControls.guessShapeFromObject3d = function(object3d){
                 var shape = new Ammo.btCylinderShape( size );
         }else{
                 // console.assert('unknown geometry type', object3d.geometry)
-                var box3 = new THREE.Box3().setFromObject(this.object3d)
+                var box3 = new THREE.Box3().setFromObject(object3d)
                 var size = box3.getSize()
                 var btVector3 = new Ammo.btVector3()
                 btVector3.setX(size.x/2 * s.x)

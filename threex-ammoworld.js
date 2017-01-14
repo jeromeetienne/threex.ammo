@@ -65,10 +65,18 @@ THREEx.AmmoWorld.prototype.add = function(ammoControls){
 
 THREEx.AmmoWorld.prototype.remove = function(ammoControls){
         console.assert(ammoControls instanceof THREEx.AmmoControls)        
+
+        if( this.contains(ammoControls) === false )     return
+
         this.physicsWorld.removeRigidBody( ammoControls.physicsWorld )
-        console.assert(false, 'remove it from _ammoControls too!')
+
+        // retmove it from _ammoControls
+        this._ammoControls.splice(this._ammoControls.indexOf(ammoControls), 1);
 }
 
+THREEx.AmmoWorld.prototype.contains = function(ammoControls){
+        return this._ammoControls.indexOf(ammoControls) !== -1 ? true : False
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
