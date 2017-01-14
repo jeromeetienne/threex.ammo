@@ -1,1 +1,1 @@
-a-frame components for threex.ammo.js
+Provide a-frame to access ammo.js physics

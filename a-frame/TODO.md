@@ -1,0 +1,5 @@
+- put ammo.js as /vendor/ammo.js
+- fix issue with initial rotation/position/scale
+- fix issue with shape scaling
+  - aframe always include a group first, it confuse when picking the geometry
+- add the stepSimulation in ammoworld

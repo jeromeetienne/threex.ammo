@@ -1,1 +1,0 @@
-- put ammo.js as /vendor/ammo.js
