@@ -7,6 +7,10 @@ AFRAME.registerSystem('ammo-world', {
 		gravity : {
 			type: 'vec3',
 			default: '0 -9.81 0',
+		},
+		maxSteps : {
+			type: 'number',
+			default: 100,
 		}
 	},
 	init: function () {
@@ -24,6 +28,8 @@ AFRAME.registerSystem('ammo-world', {
 	update: function(){
 		var vector3 = this.data.gravity
 		this.ammoWorld.setGravity(vector3.x, vector3.y, vector3.z)
+
+		this.ammoWorld.maxSteps = this.data.maxSteps
 	}
 });
 

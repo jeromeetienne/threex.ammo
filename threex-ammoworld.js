@@ -6,9 +6,8 @@ THREEx.AmmoWorld = function(){
         this._ammoControls = []
 
         this._clock = new THREE.Clock();
-        
+        this.maxSteps = 100
         this.collisionEnabled = false
-        
         
         var collisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
         var dispatcher = new Ammo.btCollisionDispatcher( collisionConfiguration );
@@ -32,7 +31,7 @@ THREEx.AmmoWorld.prototype.update = function(){
         }
 
         // compute physics
-        this.physicsWorld.stepSimulation( deltaTime, 100 );
+        this.physicsWorld.stepSimulation( deltaTime, this.maxSteps );
 
         // update all ammoControls
         var btTransform = new Ammo.btTransform();
