@@ -7,11 +7,13 @@
 
 <body><a-scene ammo-world>
 
-	<a-sphere ammo-controls='restitution: 1' color="yellow" radius="1" position="-1 2 -5" ></a-sphere>
+	<a-sphere ammo-controls='restitution: 1; angularVelocity: 90 0 90' wireframe=true color="yellow" radius="1" position="-1 2 -5" ></a-sphere>
 
-	<!-- <a-box ammo-controls='mass: 2; linearVelocity: 0 0 0;'   position="0 2 -5" radius="2" color="lightblue"></a-box>
-	<a-box ammo-controls='mass: 2; linearVelocity: -4 -3 0; angularVelocity: 90 0 90'   position="4 2 -5" radius="2" color="lightblue"></a-box> -->
+	<!-- <a-box ammo-controls='mass: 2; linearVelocity: 0 0 0;'   position="0 2 -5" radius="2" color="lightblue"></a-box> -->
+	<a-box  src="images/box.png" ammo-controls='mass: 2; linearVelocity: -4 -3 0; angularVelocity: 90 0 90' position="4 2 -5" radius="2" color="lightblue"></a-box>
+
 	<!-- <a-cylinder ammo-controls='linearVelocity: -10 0 0;'  position="1 0.75 -3" radius="0.5" height="1.5" color="#FFC65D"></a-cylinder> -->
-	<!-- <a-box ammo-controls='mass: 0' position="0 0 -5" width="10" height=".1" depth='10' color="lightgrey"></a-plane> -->
+	<a-box src="https://i.imgur.com/mYmmbrp.jpg" ammo-controls='mass: 0' position="0 0 -5" width="10" height=".1" depth='10' color="lightgrey"></a-plane>
+
 	<a-sky color="darkblue"></a-sky>
 </a-scene></body>

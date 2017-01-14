@@ -57,6 +57,7 @@ AFRAME.registerComponent('ammo-controls', {
 		if( isNaN(this.data.mass) === false ){
 			options.mass = this.data.mass
 		}
+
 		// create the ammo-controls
 		var ammoControls = new THREEx.AmmoControls(this.el.object3D, options)
 		this.ammoControls = ammoControls

@@ -57,43 +57,45 @@ Object.assign( THREEx.AmmoControls.prototype, THREE.EventDispatcher.prototype )
 ////////////////////////////////////////////////////////////////////////////////
 
 THREEx.AmmoControls.guessMassFromObject3d = function(object3d){
-        var p = object3d.geometry ? object3d.geometry.parameters : null
+        var guessedGeometry = THREEx.AmmoControls._guessGeometryFromObject3d(object3d)
+        var p = guessedGeometry.parameters
         var s = object3d.scale
-        var mass
-        if( object3d.geometry instanceof THREE.BoxGeometry ){
-                mass = p.width * s.x
+
+        if( guessedGeometry.type === 'BoxGeometry' ){
+                var mass = p.width * s.x
                                 * p.height * s.y
                                 * p.depth * s.z                 
-        }else if( object3d.geometry instanceof THREE.SphereGeometry ){
-                mass = 4/3 *Math.PI * Math.pow(p.radius * s.x ,3)                        
-        }else if( object3d.geometry instanceof THREE.CylinderGeometry ){
+        }else if( guessedGeometry.type === 'SphereGeometry' ){
+                var mass = 4/3 *Math.PI * Math.pow(p.radius * s.x ,3)                        
+        }else if( guessedGeometry.type === 'CylinderGeometry' ){
                 // from http://jwilson.coe.uga.edu/emt725/Frustum/Frustum.cone.html
-                mass = Math.PI*p.height/3 * (p.radiusBottom*p.radiusBottom * s.x*s.x
+                var mass = Math.PI*p.height/3 * (p.radiusBottom*p.radiusBottom * s.x*s.x
                         + p.radiusBottom*p.radiusTop * s.y*s.y
                         + p.radiusTop*p.radiusTop * s.x*s.x)
         }else{
                 // console.assert('unknown geometry type', object3d.geometry)
                 var box3 = new THREE.Box3().setFromObject(object3d)
                 var size = box3.getSize()
-                mass = size.x*s.x * size.y*s.y * size.z*s.z
+                var mass = size.x*s.x * size.y*s.y * size.z*s.z
         }        
         return mass
 }
 
 THREEx.AmmoControls.guessShapeFromObject3d = function(object3d){
-        var p = object3d.geometry ? object3d.geometry.parameters : null
+        var guessedGeometry = THREEx.AmmoControls._guessGeometryFromObject3d(object3d)
+        var p = guessedGeometry.parameters
         var s = object3d.scale
 
-        if( object3d.geometry instanceof THREE.BoxGeometry ){
+        if( guessedGeometry.type === 'BoxGeometry' ){
                 var btVector3 = new Ammo.btVector3()
                 btVector3.setX(p.width /2 * s.x)
                 btVector3.setY(p.height/2 * s.y)
                 btVector3.setZ(p.depth /2 * s.z)
                 var shape = new Ammo.btBoxShape( btVector3 );
-        }else if( object3d.geometry instanceof THREE.SphereGeometry ){
+        }else if( guessedGeometry.type === 'SphereGeometry' ){
                 var radius = p.radius * s.x
                 var shape = new Ammo.btSphereShape( radius );                
-        }else if( object3d.geometry instanceof THREE.CylinderGeometry ){
+        }else if( guessedGeometry.type === 'CylinderGeometry' ){
                 var size = new Ammo.btVector3( p.radiusTop* s.x,
                                 p.height * 0.5 * s.y,
                                 p.radiusBottom * s.x)
@@ -110,6 +112,29 @@ THREEx.AmmoControls.guessShapeFromObject3d = function(object3d){
         }
         return shape
 }
+
+THREEx.AmmoControls._guessGeometryFromObject3d = function(object3d){
+        var parameters = null
+        var type = 'unknown'
+
+        if( object3d.geometry instanceof THREE.BoxGeometry ){
+                parameters = object3d.geometry.parameters
+                type = object3d.geometry.type
+        }
+        // TODO this is a kludge to support basic shape in a-frame - ugly but harmless
+        if( object3d.children.length === 1 && object3d.children[0].geometry.type === 'BufferGeometry' ){
+                parameters = object3d.children[0].geometry.metadata.parameters
+                type = object3d.children[0].geometry.metadata.type
+        }
+
+
+        return {
+                parameters : parameters,
+                type : type
+        }
+        
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //          Code Separator
 ////////////////////////////////////////////////////////////////////////////////
